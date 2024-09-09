@@ -1,7 +1,7 @@
 import ifcopenshell
 
-from .rules import windowRule
-from .rules import doorRule
+from rules import windowRule
+from rules import doorRule
 
 model = ifcopenshell.open("path/to/ifcfile.ifc")
 
