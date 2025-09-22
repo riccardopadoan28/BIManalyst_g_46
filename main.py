@@ -30,7 +30,7 @@ def main():
     if building is None:
         print("Warning! No IfcBuilding found in the model!")
     
-    dictionary=create_column_dict()
+    #dictionary=create_column_dict()
 
     # Use the function to get_column_type_names and print it 
     print(get_column_type_names(model))
