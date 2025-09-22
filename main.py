@@ -16,9 +16,9 @@ def get_column_type_names(model):
             column_type_names.append(column_type_name)   
     return column_type_names
 
-def create_column_dict():
-    int number
-    print("How many Column Types does the report define?")
+#def create_column_dict():
+    #int number
+    #print("How many Column Types does the report define?")
     
 
 def main():
