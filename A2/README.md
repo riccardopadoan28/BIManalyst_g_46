@@ -28,8 +28,8 @@ To pursuit the claim the user need to:
 5.  calculate bill of quantities and generate BOQ report.
 
 ## BPMN file
-
-You can see the documentation [here](IMG/A2_G_46.svg)
+You can see the documentation [here][a2ImageLink]
+[a2ImageLink]: IMG/A2_G_46.svg
 
 IFC Classes involved would be: IfcBeams, IfcColumns, IfcSlabs, IfcWalls, ecc..
 
