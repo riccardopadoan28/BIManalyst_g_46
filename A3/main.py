@@ -55,6 +55,7 @@ def get_rectangle_profiles_from_columns(model):
 
     return profiles_dictionary
 
+# Define function to get non rectangle profile from the columns
 def get_non_rectangle_profiles_from_columns(model):
     profiles_dictionary = {}
     for col in model.by_type("IfcColumn"):
