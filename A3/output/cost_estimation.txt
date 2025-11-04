@@ -1,0 +1,15 @@
+COST ESTIMATION
+===============
+
+Currency: EUR
+Rows: 0
+
+Position;Number;Text;Unit;Qty;Unit Cost;Line Total;#Elems
+
+BREAKDOWN BY STRUCTURAL ELEMENT TYPE
+Type;Qty Total;Line Total;#Elems
+
+BREAKDOWN BY IFC CLASS
+IfcClass;Qty Total;Line Total;#Elems
+
+GRAND TOTAL (EUR): 0,00

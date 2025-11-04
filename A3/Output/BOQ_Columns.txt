@@ -1,9 +1,0 @@
-Level | Total Volume [m³] | Total Price [€] | Steel Columns Count
-------------------------------------------------------------
-B_00 | 17.54 | 1859.39 (Concrete) | 0.0 (Steel) | 0
-F_00 | 5.85 | 619.8 (Concrete) | 0.0 (Steel) | 0
-
-Total rectangular column volume: 23.39 m³
-Total price (Concrete): 2479.19 €
-Total price (Steel): 91665.41 €
-Total steel columns count: 280

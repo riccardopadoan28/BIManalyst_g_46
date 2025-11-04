@@ -1,106 +1,197 @@
 import ifcopenshell as ifc
+import os
+from typing import Dict, List, Tuple
+
+from .helper_read import read_price_list
+from .helper_get import map_elements_to_price_rows_by_type_name
 
 
-# Write the results in a txt file
+def _format_number_eu(value: float, decimals: int = 2) -> str:
+    s = f"{value:,.{decimals}f}"  # 1,234,567.89
+    return s.replace(",", "X").replace(".", ",").replace("X", ".")
 
-def write_qto_columns(grouped, file_path="QTO_Columns.txt", material="Concrete", prices=None):
-    if prices is None:
-        prices = {}
-    price_per_m3 = prices.get(material, 0)
-    with open(file_path, "a", encoding="utf-8") as f:
-        f.write("Profile Name | Column ID | XDim [mm] | YDim [mm] | Depth [mm] | Volume [m³] | Material | Price [€]\n")
-        f.write("-" * 120 + "\n")
-        for profile_name in sorted(grouped.keys()):
-            for col_id, profile, depth in grouped[profile_name]:
-                x = profile.XDim
-                y = profile.YDim
-                d = depth
-                volume = (x / 1000.0) * (y / 1000.0) * (d / 1000.0)
-                price = round(volume * price_per_m3, 2)
-                f.write(f"{profile_name} | {col_id} | {round(x,2)} | {round(y,2)} | {round(d,2)} | {round(volume,2)} | {material} | {price}\n")
 
-def write_qto_columns_all(grouped_rect, grouped_nonrect, file_path="QTO_Columns.txt", prices=None):
-    if prices is None:
-        prices = {}
-    steel_count_by_level = {}
-    steel_total_count = 0
-    with open(file_path, "a", encoding="utf-8") as f:
-        f.write("Profile Name | Column ID | XDim [mm] | YDim [mm] | Depth [mm] | Volume [m³] | Material | Price [€]\n")
-        f.write("-" * 120 + "\n")
-        # Rettangolari (Concrete)
-        for profile_name in sorted(grouped_rect.keys()):
-            price_per_m3 = prices.get("Concrete", 0)
-            for col_id, profile, depth in grouped_rect[profile_name]:
-                x = profile.XDim
-                y = profile.YDim
-                d = depth
-                volume = (x / 1000.0) * (y / 1000.0) * (d / 1000.0)
-                price = round(volume * price_per_m3, 2)
-                f.write(f"{profile_name} | {col_id} | {round(x,2)} | {round(y,2)} | {round(d,2)} | {round(volume,2)} | Concrete | {price}\n")
-        # Non rettangolari (Steel)
-        for profile_name in sorted(grouped_nonrect.keys()):
-            price_per_meter = prices.get(profile_name, prices.get("Steel", 0))
-            for col_id, profile, depth, profile_type in grouped_nonrect[profile_name]:
-                d = depth / 1000.0  # lunghezza in metri
-                # Calcolo volume per profili circolari
-                if profile_type == "IfcCircleProfileDef":
-                    r = profile.Radius
-                    volume = 3.1416 * (r / 1000.0) ** 2 * d
-                else:
-                    volume = 0.0
-                price = round(price_per_meter * d, 2)
-                x = getattr(profile, "XDim", "-")
-                y = getattr(profile, "YDim", "-")
-                f.write(f"{profile_name} | {col_id} | {x} | {y} | {round(depth,2)} | {round(volume,2)} | Steel | {price}\n")
-                # Conteggio per livello
-                level_name = "Unknown"
-                if hasattr(profile, "ContainedInStructure"):
-                    for rel in getattr(profile, "ContainedInStructure", []):
-                        if rel.RelatingStructure and hasattr(rel.RelatingStructure, "Name"):
-                            level_name = rel.RelatingStructure.Name or "Unknown"
-                steel_count_by_level.setdefault(level_name, 0)
-                steel_count_by_level[level_name] += 1
-                steel_total_count += 1
-        f.write(f"\nTotal steel columns count: {steel_total_count}\n")
-        for level in steel_count_by_level:
-            f.write(f"Steel columns count at level {level}: {steel_count_by_level[level]}\n")
+def build_cost_estimation_summary(
+    ifc_file,
+    csv_path: str,
+    *,
+    text_col: str = "Text",
+    unit_col: str = "Unit",
+    unit_cost_col: str = "Unit Cost",
+    position_col: str = "Position",
+    number_col: str = "Number",
+    structural_type_col: str = "Structural Element Type",
+    delimiter: str = ";",
+    encoding: str = "cp1252",
+    filter_ifc_classes: Tuple[str, ...] = (
+        "IfcBeam", "IfcColumn", "IfcMember", "IfcSlab", "IfcWall", "IfcWallStandardCase"
+    ),
+) -> Dict[str, object]:
+    rows = read_price_list(csv_path, delimiter=delimiter, encoding=encoding)
+    matches = map_elements_to_price_rows_by_type_name(
+        ifc_file,
+        rows,
+        text_col=text_col,
+        unit_col=unit_col,
+        unit_cost_col=unit_cost_col,
+        filter_ifc_classes=filter_ifc_classes,
+    )
 
-def write_boq_columns(level_volumes, total_volume, prices, grouped_nonrect=None, file_path="BOQ_Columns.txt"):
-    price_per_m3 = prices.get("Concrete", 0)
-    steel_total_price = 0.0
-    steel_level_prices = {}
-    steel_count_by_level = {}
-    steel_total_count = 0
-    # Calcolo prezzi e conteggi per colonne acciaio se presenti
-    if grouped_nonrect:
-        for profile_name in grouped_nonrect:
-            price_per_meter = prices.get(profile_name, prices.get("Steel", 0))
-            for col_id, profile, depth, profile_type in grouped_nonrect[profile_name]:
-                d = depth / 1000.0  # lunghezza in metri
-                price = round(price_per_meter * d, 2)
-                # Trova livello
-                level_name = "Unknown"
-                if hasattr(profile, "ContainedInStructure"):
-                    for rel in getattr(profile, "ContainedInStructure", []):
-                        if rel.RelatingStructure and hasattr(rel.RelatingStructure, "Name"):
-                            level_name = rel.RelatingStructure.Name or "Unknown"
-                steel_level_prices.setdefault(level_name, 0.0)
-                steel_level_prices[level_name] += price
-                steel_count_by_level.setdefault(level_name, 0)
-                steel_count_by_level[level_name] += 1
-                steel_total_price += price
-                steel_total_count += 1
-    with open(file_path, "w", encoding="utf-8") as f:
-        f.write("Level | Total Volume [m³] | Total Price [€] | Steel Columns Count\n")
-        f.write("-" * 60 + "\n")
-        for level in sorted(level_volumes.keys()):
-            vol = level_volumes[level]
-            price = round(vol * price_per_m3, 2)
-            steel_price = round(steel_level_prices.get(level, 0.0), 2)
-            steel_count = steel_count_by_level.get(level, 0)
-            f.write(f"{level} | {round(vol,2)} | {price} (Concrete) | {steel_price} (Steel) | {steel_count}\n")
-        total_price = round(total_volume * price_per_m3, 2)
-        f.write("\nTotal rectangular column volume: {} m³\n".format(round(total_volume,2)))
-        f.write("Total price (Concrete): {} €\n".format(total_price))
-        f.write("Total price (Steel): {} €\n".format(round(steel_total_price,2)))
-        f.write(f"Total steel columns count: {steel_total_count}\n")
+    # Aggregazione per riga di listino
+    agg: Dict[Tuple[str, str, float, str, str], Dict[str, object]] = {}
+    # Breakdown
+    by_struct_type: Dict[str, Dict[str, object]] = {}
+    by_ifc_class: Dict[str, Dict[str, object]] = {}
+
+    for m in matches:
+        r = m["row"]
+        text = (r.get(text_col) or "").strip()
+        unit = (r.get(unit_col) or "").strip()
+        position = (r.get(position_col) or "").strip()
+        number = (r.get(number_col) or "").strip()
+        struct_type = (r.get(structural_type_col) or "").strip()
+        unit_cost = float(m["unit_cost"])
+        qty = float(m["quantity"])
+        line_total = qty * unit_cost
+        ifc_class = m["element"].is_a()
+
+        key = (text, unit, unit_cost, position, number)
+        if key not in agg:
+            agg[key] = {
+                "position": position,
+                "number": number,
+                "text": text,
+                "unit": unit,
+                "unit_cost": unit_cost,
+                "quantity_total": 0.0,
+                "elements_count": 0,
+            }
+        agg[key]["quantity_total"] = float(agg[key]["quantity_total"]) + qty
+        agg[key]["elements_count"] = int(agg[key]["elements_count"]) + 1
+
+        if struct_type not in by_struct_type:
+            by_struct_type[struct_type] = {"line_total": 0.0, "quantity_total": 0.0, "elements_count": 0}
+        by_struct_type[struct_type]["line_total"] += line_total
+        by_struct_type[struct_type]["quantity_total"] += qty
+        by_struct_type[struct_type]["elements_count"] += 1
+
+        if ifc_class not in by_ifc_class:
+            by_ifc_class[ifc_class] = {"line_total": 0.0, "quantity_total": 0.0, "elements_count": 0}
+        by_ifc_class[ifc_class]["line_total"] += line_total
+        by_ifc_class[ifc_class]["quantity_total"] += qty
+        by_ifc_class[ifc_class]["elements_count"] += 1
+
+    items: List[Dict[str, object]] = []
+    grand_total = 0.0
+    for (text, unit, unit_cost, position, number), data in agg.items():
+        qty = float(data["quantity_total"])
+        line_total = qty * float(unit_cost)
+        grand_total += line_total
+        items.append({
+            "position": position,
+            "number": number,
+            "text": text,
+            "unit": unit,
+            "unit_cost": float(unit_cost),
+            "quantity_total": qty,
+            "elements_count": int(data["elements_count"]),
+            "line_total": line_total,
+        })
+
+    items.sort(key=lambda x: (x["position"], x["number"], x["text"]))
+    by_struct_type_sorted = sorted(by_struct_type.items(), key=lambda kv: kv[1]["line_total"], reverse=True)
+    by_ifc_class_sorted = sorted(by_ifc_class.items(), key=lambda kv: kv[1]["line_total"], reverse=True)
+
+    return {
+        "items": items,
+        "grand_total": grand_total,
+        "by_struct_type": by_struct_type_sorted,
+        "by_ifc_class": by_ifc_class_sorted,
+    }
+
+
+def write_cost_estimation_report(
+    ifc_file,
+    csv_path: str,
+    *,
+    output_dir: str = "output",
+    filename: str = "cost_estimation.txt",
+    currency: str = "EUR",
+    text_col: str = "Text",
+    unit_col: str = "Unit",
+    unit_cost_col: str = "Unit Cost",
+    position_col: str = "Position",
+    number_col: str = "Number",
+    structural_type_col: str = "Structural Element Type",
+    delimiter: str = ";",
+    encoding: str = "cp1252",
+    filter_ifc_classes: Tuple[str, ...] = (
+        "IfcBeam", "IfcColumn", "IfcMember", "IfcSlab", "IfcWall", "IfcWallStandardCase"
+    ),
+) -> str:
+    summary = build_cost_estimation_summary(
+        ifc_file,
+        csv_path,
+        text_col=text_col,
+        unit_col=unit_col,
+        unit_cost_col=unit_cost_col,
+        position_col=position_col,
+        number_col=number_col,
+        structural_type_col=structural_type_col,
+        delimiter=delimiter,
+        encoding=encoding,
+        filter_ifc_classes=filter_ifc_classes,
+    )
+
+    os.makedirs(output_dir, exist_ok=True)
+    out_path = os.path.join(output_dir, filename)
+
+    items: List[Dict[str, object]] = summary["items"]
+    grand_total: float = float(summary["grand_total"])
+    by_struct_type = summary["by_struct_type"]
+    by_ifc_class = summary["by_ifc_class"]
+
+    with open(out_path, "w", encoding="utf-8") as f:
+        f.write("COST ESTIMATION\n")
+        f.write("===============\n\n")
+        f.write(f"Currency: {currency}\n")
+        f.write(f"Rows: {len(items)}\n\n")
+
+        # Dettaglio righe aggregate
+        f.write("Position;Number;Text;Unit;Qty;Unit Cost;Line Total;#Elems\n")
+        for it in items:
+            f.write(
+                f"{it['position']};"
+                f"{it['number']};"
+                f"{it['text']};"
+                f"{it['unit']};"
+                f"{_format_number_eu(it['quantity_total'])};"
+                f"{_format_number_eu(it['unit_cost'])};"
+                f"{_format_number_eu(it['line_total'])};"
+                f"{it['elements_count']}\n"
+            )
+
+        f.write("\nBREAKDOWN BY STRUCTURAL ELEMENT TYPE\n")
+        f.write("Type;Qty Total;Line Total;#Elems\n")
+        for t, data in by_struct_type:
+            f.write(
+                f"{t};"
+                f"{_format_number_eu(float(data['quantity_total']))};"
+                f"{_format_number_eu(float(data['line_total']))};"
+                f"{int(data['elements_count'])}\n"
+            )
+
+        f.write("\nBREAKDOWN BY IFC CLASS\n")
+        f.write("IfcClass;Qty Total;Line Total;#Elems\n")
+        for cls, data in by_ifc_class:
+            f.write(
+                f"{cls};"
+                f"{_format_number_eu(float(data['quantity_total']))};"
+                f"{_format_number_eu(float(data['line_total']))};"
+                f"{int(data['elements_count'])}\n"
+            )
+
+        f.write("\n")
+        f.write(f"GRAND TOTAL ({currency}): {_format_number_eu(grand_total)}\n")
+
+    return out_path
