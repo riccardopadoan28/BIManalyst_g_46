@@ -2,6 +2,7 @@
 import ifcopenshell as ifc
 import os
 import re
+import shutil
 
 from helper.helper_get import (
     get_all_struct_elements,
@@ -39,12 +40,21 @@ def _extract_total_cost_from_summary(summary_path: str):
 
 # Define main
 def main():
-    # IFC in input
-    model = ifc.open(r"C:\Users\ricki\Desktop\GitHub\BIManalyst_g_46\A3\input\25-08-D-STR.ifc")
+    # IFC sorgente (non modificato)
+    in_ifc_path = r"C:\Users\ricki\Desktop\GitHub\BIManalyst_g_46\A3\input\25-08-D-STR.ifc"
 
     # Output dir
     output_dir = os.path.join(os.path.dirname(__file__), "output")
     os.makedirs(output_dir, exist_ok=True)
+
+    # Copia modificabile (sovrascritta ogni run)
+    out_ifc_path = os.path.join(output_dir, "25-08-D-STR_cost.ifc")
+    if os.path.exists(out_ifc_path):
+        os.remove(out_ifc_path)
+    shutil.copy2(in_ifc_path, out_ifc_path)
+
+    # Apri la copia per le modifiche
+    model = ifc.open(out_ifc_path)
 
     # Esporta elenco elementi (se implementato)
     get_all_struct_elements(model, output_dir=output_dir, filename="elements.txt")
@@ -62,8 +72,7 @@ def main():
     )
     print(f"Assegnazioni: {res}")
 
-    # Salva IFC con i costi
-    out_ifc_path = os.path.join(output_dir, "25-08-D-STR_cost.ifc")
+    # Salva la copia modificata
     model.write(out_ifc_path)
 
     # Scrivi il report cost_estimation.txt e sovrascrivi sempre
@@ -88,7 +97,7 @@ def main():
             f.write("Total IfcCostItem: NON TROVATO\n")
 
     print(f"Totale IfcCostItem scritto in: {boq_text_path}")
-    print(f"IFC con costi salvato in: {out_ifc_path}")
+    print(f"IFC copia modificata salvata in: {out_ifc_path}")
 
 
 if __name__ == "__main__":
