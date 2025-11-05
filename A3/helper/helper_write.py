@@ -1,3 +1,9 @@
+"""
+Reporting helpers:
+- Build a summarized cost estimation (grouping rows)
+- Write a simple CSV-like text report
+"""
+
 import os
 import difflib
 from typing import Dict, List, Tuple
@@ -7,11 +13,13 @@ from .helper_get import get_quantity_for_unit
 
 
 def _format_number_eu(value: float, decimals: int = 2) -> str:
+    """Format 1234.56 as 1.234,56 (EU style)."""
     s = f"{value:,.{decimals}f}"
     return s.replace(",", "X").replace(".", ",").replace("X", ".")
 
 
 def _best_match(element_name: str, candidates: List[Dict[str, str]], name_col: str) -> Dict[str, str] | None:
+    """Fuzzy pick the best row for an element by comparing names."""
     if not candidates:
         return None
     base = (element_name or "").strip().lower()
@@ -35,17 +43,16 @@ def build_cost_estimation_summary(
     delimiter: str = ";",
     encoding: str = "cp1252",
 ) -> Dict[str, object]:
+    """Aggregate quantities and costs by (ident, name, unit, unit_cost)."""
     rows = read_price_list(csv_path, delimiter=delimiter, encoding=encoding)
 
-    # Indicizza righe CSV per classe IFC
+    # Index rows by IFC class for quick lookup
     by_class: Dict[str, List[Dict[str, str]]] = {}
     for r in rows:
         cls = (r.get(ifc_match_col) or "").strip() or "IfcElement"
         by_class.setdefault(cls, []).append(r)
 
-    # Aggregazione per (Identification, Name, Unit, UnitCost)
     agg: Dict[Tuple[str, str, str, float], Dict[str, object]] = {}
-
     scanned = 0
     matched = 0
 
@@ -63,8 +70,7 @@ def build_cost_estimation_summary(
         name = (match.get(text_col) or "").strip()
         unit = (match.get(unit_col) or "").strip()
 
-        # quantità dal modello in base all'unità richiesta
-        qty = get_quantity_for_unit(el, unit)
+        qty = get_quantity_for_unit(el, unit)  # derive quantity from model by unit
         if qty is None:
             continue
 
@@ -88,22 +94,24 @@ def build_cost_estimation_summary(
         agg[key]["quantity_total"] += float(qty)
         agg[key]["elements_count"] += 1
 
-    # Lista finale e totale generale
+    # Build final list and grand total
     items: List[Dict[str, object]] = []
     grand_total = 0.0
     for (ident, name, unit, unit_cost), data in agg.items():
         qty = float(data["quantity_total"])
         line_total = qty * float(unit_cost)
         grand_total += line_total
-        items.append({
-            "ident": ident,
-            "name": name,
-            "unit": unit,
-            "unit_cost": float(unit_cost),
-            "quantity_total": qty,
-            "elements_count": int(data["elements_count"]),
-            "line_total": line_total,
-        })
+        items.append(
+            {
+                "ident": ident,
+                "name": name,
+                "unit": unit,
+                "unit_cost": float(unit_cost),
+                "quantity_total": qty,
+                "elements_count": int(data["elements_count"]),
+                "line_total": line_total,
+            }
+        )
 
     items.sort(key=lambda x: (x["ident"], x["name"]))
     return {"items": items, "grand_total": grand_total, "scanned": scanned, "matched": matched}
@@ -123,6 +131,7 @@ def write_cost_estimation_report(
     delimiter: str = ";",
     encoding: str = "cp1252",
 ) -> Tuple[str, float]:
+    """Write a simple text report; return (path, grand_total)."""
     summary = build_cost_estimation_summary(
         ifc_file,
         csv_path,

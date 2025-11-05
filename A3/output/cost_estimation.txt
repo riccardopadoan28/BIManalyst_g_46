@@ -1,15 +1,14 @@
 COST ESTIMATION
 ===============
 
-Currency: EUR
-Rows: 0
+Rows: 8
 
-Position;Number;Text;Unit;Qty;Unit Cost;Line Total;#Elems
-
-BREAKDOWN BY STRUCTURAL ELEMENT TYPE
-Type;Qty Total;Line Total;#Elems
-
-BREAKDOWN BY IFC CLASS
-IfcClass;Qty Total;Line Total;#Elems
-
-GRAND TOTAL (EUR): 0,00
+Identification;Name;Unit;Qty;Unit Cost;Line Total;#Elems
+04.00.86,03;Stï¿½lprofiler, HE240B, demontere;lbm;136.161,00;8,77;1.193.700,34;37
+04.10.80,05;Betonsï¿½jle 200 x 200 mm, synlig overflade;m3;1,59;1.604,83;2.553,45;81
+04.10.82,05;Betonbjï¿½lke 200 x 300 mm, synlig overflade;m3;33,49;1.273,50;42.651,80;193
+04.10.82,06;Betonbjï¿½lke 250 x 400 mm, synlig overflade;m3;23,06;1.100,27;25.369,82;35
+04.10.82,07;Betonbjï¿½lke 300 x 500 mm, synlig overflade;m3;23,55;988,37;23.275,75;26
+04.10.82,08;Betonbjï¿½lke 400 x 600 mm, synlig overflade;m3;22,46;865,54;19.436,52;55
+04.22.33,01;15 mm Promatect-200 plade, HEB 160;lbm;427.236,00;55,74;23.814.121,82;116
+04.22.33,02;15 mm Promatect-200 plade, HEB 200;lbm;427.661,00;63,13;26.998.029,38;163

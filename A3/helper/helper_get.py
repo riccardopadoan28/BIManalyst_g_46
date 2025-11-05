@@ -1,24 +1,25 @@
-import ifcopenshell as ifc
+"""
+Model getters/quantity helpers:
+- List element types present in model
+- Extract rectangle and non-rectangle profiles for columns
+- Access base quantities and derive quantities by unit
+"""
+
 from collections import defaultdict
-import os
 from typing import Dict, List, Tuple, Optional
+import os
+import ifcopenshell as ifc
+
 from .helper_read import build_price_index_by_text, normalize_text, parse_decimal_eu
 
-# Nuova funzione: esporta tutti i tipi di elementi presenti nel modello in output/elements.txt
-def get_all_struct_elements(model, output_dir="output", filename="elements.txt"):
-    """
-    Extracts all IfcElement types present in the model and saves them to a TXT file.
-    - Creates the 'output' folder if it does not exist.
-    - Writes an alphabetically sorted list with a count per type.
-    - Returns the list of type names (sorted).
-    """
-    type_counts = defaultdict(int)
 
+def get_all_struct_elements(model, output_dir="output", filename="elements.txt"):
+    """Write all IfcElement classes with counts to output/elements.txt; return type list."""
+    type_counts = defaultdict(int)
     for elem in model.by_type("IfcElement"):
         type_counts[elem.is_a()] += 1
 
     sorted_types = sorted(type_counts.items(), key=lambda x: x[0])
-
     os.makedirs(output_dir, exist_ok=True)
     out_path = os.path.join(output_dir, filename)
 
@@ -29,73 +30,46 @@ def get_all_struct_elements(model, output_dir="output", filename="elements.txt")
 
     return [t for t, _ in sorted_types]
 
-# Define function to get rectangle profile from the columns
+
 def get_rectangle_profiles_from_columns(model):
-    # Create an empty dictionary to fill with the profile
-    profiles_dictionary = {}
+    """Collect rectangle profiles from IfcColumn geometry; return dict name -> [(gid, profile, depth)]."""
+    profiles_dictionary: Dict[str, List[Tuple[str, object, float]]] = {}
 
-    #For every column in all the IfcColumn
-    for col in model.by_type("IfcColumn"):
-        if not col.Representation: #Check if there aren't
-            continue
-        
-        # Cicle to look the IfcColumn Representations (where the geometry is stored) in Representation
-        for rep in col.Representation.Representations:
-
-            # For every items in the representations
-            for item in rep.Items:
-
-                # Case 1: if column has direct geometry
-                if item.is_a("IfcExtrudedAreaSolid"):
-                    # Define the profile using SweptArea
-                    profile = item.SweptArea
-                    # Check only the rectangle profile
-                    if profile.is_a("IfcRectangleProfileDef"):
-                        # Get the name of the profile
-                        name = profile.ProfileName or "Unnamed"
-                        # Look if the profile name is already in the dictionary and if not it creates an empty list
-                        if name not in profiles_dictionary:
-                            profiles_dictionary[name] = []
-                        # Append the profile in the profile name list
-                        profiles_dictionary[name].append((col.GlobalId, profile, item.Depth))
-
-                # Case 2: if column uses type geometry (IFC defines the geometry once)
-                elif item.is_a("IfcMappedItem"):
-                    # Get the MappedRepresentation in MappingSource (the reusable geometry definition)
-                    mapped_rep = item.MappingSource.MappedRepresentation
-                    # Search for items inside MappedRepresentation
-                    for mapped_item in mapped_rep.Items:
-                        if mapped_item.is_a("IfcExtrudedAreaSolid"):
-                            # Define the profile using SweptArea
-                            profile = mapped_item.SweptArea
-                            # Check only the rectangle profile
-                            if profile.is_a("IfcRectangleProfileDef"):
-                                # Get the name of the profile
-                                name = profile.ProfileName or "Unnamed"
-                                # Look if the profile name is already in the dictionary and if not it creates an empty list
-                                if name not in profiles_dictionary:
-                                    profiles_dictionary[name] = []
-                                # Append the profile in the profile name list
-                                profiles_dictionary[name].append((col.GlobalId, profile, mapped_item.Depth))
-
-    return profiles_dictionary
-
-# Define function to get non rectangle profile from the columns
-def get_non_rectangle_profiles_from_columns(model):
-    profiles_dictionary = {}
     for col in model.by_type("IfcColumn"):
         if not col.Representation:
             continue
         for rep in col.Representation.Representations:
             for item in rep.Items:
-                # Profili diversi dal rettangolare
+                if item.is_a("IfcExtrudedAreaSolid"):
+                    profile = item.SweptArea
+                    if profile.is_a("IfcRectangleProfileDef"):
+                        name = profile.ProfileName or "Unnamed"
+                        profiles_dictionary.setdefault(name, []).append((col.GlobalId, profile, item.Depth))
+                elif item.is_a("IfcMappedItem"):
+                    mapped_rep = item.MappingSource.MappedRepresentation
+                    for mapped_item in mapped_rep.Items:
+                        if mapped_item.is_a("IfcExtrudedAreaSolid"):
+                            profile = mapped_item.SweptArea
+                            if profile.is_a("IfcRectangleProfileDef"):
+                                name = profile.ProfileName or "Unnamed"
+                                profiles_dictionary.setdefault(name, []).append((col.GlobalId, profile, mapped_item.Depth))
+    return profiles_dictionary
+
+
+def get_non_rectangle_profiles_from_columns(model):
+    """Collect non-rectangle profiles from IfcColumn geometry."""
+    profiles_dictionary: Dict[str, List[Tuple[str, object, float, str]]] = {}
+
+    for col in model.by_type("IfcColumn"):
+        if not col.Representation:
+            continue
+        for rep in col.Representation.Representations:
+            for item in rep.Items:
                 if item.is_a("IfcExtrudedAreaSolid"):
                     profile = item.SweptArea
                     if not profile.is_a("IfcRectangleProfileDef"):
                         name = profile.ProfileName or profile.is_a() or "Unnamed"
-                        if name not in profiles_dictionary:
-                            profiles_dictionary[name] = []
-                        profiles_dictionary[name].append((col.GlobalId, profile, item.Depth, profile.is_a()))
+                        profiles_dictionary.setdefault(name, []).append((col.GlobalId, profile, item.Depth, profile.is_a()))
                 elif item.is_a("IfcMappedItem"):
                     mapped_rep = item.MappingSource.MappedRepresentation
                     for mapped_item in mapped_rep.Items:
@@ -103,12 +77,12 @@ def get_non_rectangle_profiles_from_columns(model):
                             profile = mapped_item.SweptArea
                             if not profile.is_a("IfcRectangleProfileDef"):
                                 name = profile.ProfileName or profile.is_a() or "Unnamed"
-                                if name not in profiles_dictionary:
-                                    profiles_dictionary[name] = []
-                                profiles_dictionary[name].append((col.GlobalId, profile, mapped_item.Depth, profile.is_a()))
+                                profiles_dictionary.setdefault(name, []).append((col.GlobalId, profile, mapped_item.Depth, profile.is_a()))
     return profiles_dictionary
 
+
 def get_element_type_name(element) -> str:
+    """Return assigned type name (if any) for an element."""
     try:
         if getattr(element, "IsTypedBy", None):
             rel = element.IsTypedBy[0]
@@ -118,7 +92,9 @@ def get_element_type_name(element) -> str:
         pass
     return ""
 
+
 def get_base_quantities(element) -> Dict[str, float]:
+    """Extract basic QTO (length/area/volume) from IfcElementQuantity property sets."""
     out: Dict[str, float] = {}
     try:
         for rel in getattr(element, "IsDefinedBy", []) or []:
@@ -138,7 +114,9 @@ def get_base_quantities(element) -> Dict[str, float]:
         pass
     return out
 
+
 def _try_get_extrusion_depth_and_profile(element) -> Tuple[Optional[float], Optional[object]]:
+    """Best-effort: get extruded depth and profile from direct/mapped geometry."""
     if not getattr(element, "Representation", None):
         return None, None
     try:
@@ -155,7 +133,9 @@ def _try_get_extrusion_depth_and_profile(element) -> Tuple[Optional[float], Opti
         pass
     return None, None
 
+
 def get_quantity_for_unit(element, unit: str) -> Optional[float]:
+    """Return quantity for unit: m3 (volume), m/lm/lbm (length), m2 (area)."""
     unit = (unit or "").strip().lower()
     qto = get_base_quantities(element)
 
@@ -191,13 +171,16 @@ def get_quantity_for_unit(element, unit: str) -> Optional[float]:
 
     return None
 
+
 def collect_candidates_by_classes(model, ifc_classes: Tuple[str, ...]) -> List[object]:
+    """Collect elements by specific IFC classes or all IfcElement if empty."""
     if not ifc_classes:
         return model.by_type("IfcElement")
     out: List[object] = []
     for cls in ifc_classes:
         out.extend(model.by_type(cls))
     return out
+
 
 def map_elements_to_price_rows_by_type_name(
     model,
@@ -208,6 +191,7 @@ def map_elements_to_price_rows_by_type_name(
     unit_cost_col: str = "Unit Cost",
     filter_ifc_classes: Tuple[str, ...] = ("IfcBeam", "IfcColumn", "IfcMember", "IfcSlab", "IfcWall", "IfcWallStandardCase"),
 ) -> List[Dict[str, object]]:
+    """Map elements to CSV rows using type names, producing quantity and cost lines."""
     idx = build_price_index_by_text(rows, text_col=text_col)
     elements = collect_candidates_by_classes(model, filter_ifc_classes)
     out: List[Dict[str, object]] = []
@@ -229,15 +213,17 @@ def map_elements_to_price_rows_by_type_name(
         except Exception:
             continue
 
-        out.append({
-            "element": el,
-            "global_id": el.GlobalId,
-            "type_name": tname,
-            "row": row,
-            "unit": unit,
-            "quantity": float(qty),
-            "unit_cost": float(unit_cost),
-            "line_total": float(qty) * float(unit_cost),
-        })
+        out.append(
+            {
+                "element": el,
+                "global_id": el.GlobalId,
+                "type_name": tname,
+                "row": row,
+                "unit": unit,
+                "quantity": float(qty),
+                "unit_cost": float(unit_cost),
+                "line_total": float(qty) * float(unit_cost),
+            }
+        )
 
     return out
