@@ -1,25 +1,29 @@
-Identification Code;Name;Ifc Match;IfcCostValue
-04.10.82,01;Betonbjï¿½lke 200 x 300 mm, ikke synlig flade;IfcBeam;1084,54791
-04.10.82,02;Betonbjï¿½lke 250 x 400 mm, ikke synlig flade;IfcBeam;951,261505
-04.10.82,03;Betonbjï¿½lke 300 x 500 mm, ikke synlig flade;IfcBeam;865,10925
-04.10.82,04;Betonbjï¿½lke 400 x 600 mm, ikke synlig flade;IfcBeam;770,58807
-04.10.82,05;BetonbjÃ¦lke 200 x 300 mm, synlig overflade;IfcBeam;1273,497015
-04.10.82,06;Betonbjï¿½lke 250 x 400 mm, synlig overflade;IfcBeam;1100,27039
-04.10.82,07;Betonbjï¿½lke 300 x 500 mm, synlig overflade;IfcBeam;988,373495
-04.10.82,08;Betonbjï¿½lke 400 x 600 mm, synlig overflade;IfcBeam;865,54367
-04.22.33,01;15 mm Promatect-200 plade, HEB 160;IfcColumn;55,73997
-04.22.33,02;15 mm Promatect-200 plade, HEB 200;IfcColumn;63,12951
-04.22.33,03;15 mm Promatect-200 plade, HEB 160;IfcColumn;42,1926
-04.22.33,04;15 mm Promatect-200 plade, HEB 200;IfcColumn;48,03236
-04.22.33,05;15 mm Promatect-200 plade, HEB 160;IfcColumn;20,78865
-04.22.33,06;15 mm Promatect-200 plade, HEB 200;IfcColumn;23,36214
-04.10.80,01;Betonsï¿½jle 200 x 200 mm, ikke synlig flade;IfcColumn;1313,296265
-04.10.80,02;Betonsï¿½jle 300 x 300 mm, ikke synlig flade;IfcColumn;994,230085
-04.10.80,03;Betonsï¿½jle 400 x 400 mm, ikke synlig flade;IfcColumn;834,48883
-04.10.80,04;Betonsï¿½jle 500 x 500 mm, ikke synlig flade;IfcColumn;737,88712
-04.10.80,05;Betonsï¿½jle 200 x 200 mm, synlig overflade;IfcColumn;1604,8254
-04.10.80,06;Betonsï¿½jle 300 x 300 mm, synlig overflade;IfcColumn;1188,89549
-04.10.80,07;Betonsï¿½jle 400 x 400 mm, synlig overflade;IfcColumn;980,85181
-04.10.80,08;Betonsï¿½jle 500 x 500 mm, synlig overflade;IfcColumn;855,523585
-04.00.86,03;Stï¿½lprofiler, HE240B, demontere;IfcColumn;8,76683
-03.01.10;Beton sÃ¸jle 300x300 mm;IfcColumn;950.25
+Identification Code;Name;Ifc Match;IfcCostValue;Unit
+04.10.82,01;Betonbjï¿½lke 200 x 300 mm, ikke synlig flade;IfcBeam;1084,55;m3
+04.10.82,02;Betonbjï¿½lke 250 x 400 mm, ikke synlig flade;IfcBeam;951,26;m3
+04.10.82,03;Betonbjï¿½lke 300 x 500 mm, ikke synlig flade;IfcBeam;865,11;m3
+04.10.82,04;Betonbjï¿½lke 400 x 600 mm, ikke synlig flade;IfcBeam;770,59;m3
+04.10.82,05;BetonbjÃ¦lke 200 x 300 mm, synlig overflade;IfcBeam;1273,50;m3
+04.10.82,06;Betonbjï¿½lke 250 x 400 mm, synlig overflade;IfcBeam;1100,27;m3
+04.10.82,07;Betonbjï¿½lke 300 x 500 mm, synlig overflade;IfcBeam;988,37;m3
+04.10.82,08;Betonbjï¿½lke 400 x 600 mm, synlig overflade;IfcBeam;865,54;m3
+04.22.33,01;15 mm Promatect-200 plade, HEB 160;IfcBeams or IfcColumn;55,74;lbm
+04.22.33,02;15 mm Promatect-200 plade, HEB 200;IfcBeams or IfcColumn;63,13;lbm
+04.22.33,03;15 mm Promatect-200 plade, HEB 160;IfcBeams or IfcColumn;42,19;lbm
+04.22.33,04;15 mm Promatect-200 plade, HEB 200;IfcBeams or IfcColumn;48,03;lbm
+04.22.33,05;15 mm Promatect-200 plade, HEB 160;IfcBeams or IfcColumn;20,79;lbm
+04.22.33,06;15 mm Promatect-200 plade, HEB 200;IfcBeams or IfcColumn;23,36;lbm
+04.10.80,01;Betonsï¿½jle 200 x 200 mm, ikke synlig flade;IfcColumn;1313,30;m3
+04.10.80,02;Betonsï¿½jle 300 x 300 mm, ikke synlig flade;IfcColumn;994,23;m3
+04.10.80,03;Betonsï¿½jle 400 x 400 mm, ikke synlig flade;IfcColumn;834,49;m3
+04.10.80,04;Betonsï¿½jle 500 x 500 mm, ikke synlig flade;IfcColumn;737,89;m3
+04.10.80,05;Betonsï¿½jle 200 x 200 mm, synlig overflade;IfcColumn;1604,83;m3
+04.10.80,06;Betonsï¿½jle 300 x 300 mm, synlig overflade;IfcColumn;1188,90;m3
+04.10.80,07;Betonsï¿½jle 400 x 400 mm, synlig overflade;IfcColumn;980,85;m3
+04.10.80,08;Betonsï¿½jle 500 x 500 mm, synlig overflade;IfcColumn;855,52;m3
+04.50.12,01;Pletspartling af betongulv;IfcSlab;25,96;m2
+04.56.54,01;Vægge, MBK 2122, betonelementer;IfcWall;75,62;m2
+04.56.54,02;Vægge, MBK 2622, betonelementer;IfcWall;106,57;m2
+04.56.54,03;Vægge, MBK 2712, betonelementer;IfcWall;63,43;m2
+04.56.54,04;Vægge, MBK 2412, betonelementer;IfcWall;134,32;m2
+04.56.54,05;Vægge, MBK 2912, betonelementer;IfcWall;198,99;m2

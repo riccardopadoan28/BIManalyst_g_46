@@ -1,11 +1,9 @@
 """
 Model getters/quantity helpers:
 - List element types present in model
-- Extract rectangle and non-rectangle profiles for columns
 - Access base quantities and derive quantities by unit
 """
-
-from collections import defaultdict
+from collections import defaultdict, Counter
 from typing import Dict, List, Tuple, Optional
 import os
 import ifcopenshell as ifc
@@ -13,72 +11,115 @@ import ifcopenshell as ifc
 from .helper_read import build_price_index_by_text, normalize_text, parse_decimal_eu
 
 
-def get_all_struct_elements(model, output_dir="output", filename="elements.txt"):
-    """Write all IfcElement classes with counts to output/elements.txt; return type list."""
-    type_counts = defaultdict(int)
-    for elem in model.by_type("IfcElement"):
-        type_counts[elem.is_a()] += 1
+def get_all_struct_elements(
+    model,
+    output_dir="output",
+    filename="QTO.txt",
+    *,
+    sort: str = "count",
+    include_percent: bool = False
+):
+    """
+    Scrive: per ogni IfcElement (es. IfcBeam), i relativi Ifc...Type (es. IfcBeamType),
+    numero di istanze collegate a ciascun Type, numero di elementi senza Type e i totali.
+    Ritorna la lista (type_name, count, None) per compatibilità.
+    """
+    # Conteggi per classe base (IfcBeam, IfcColumn, ...)
+    base_counts = defaultdict(int)
 
-    sorted_types = sorted(type_counts.items(), key=lambda x: x[0])
+    # Dettagli per classe base
+    # base_details[base] = {
+    #   "type_class": "IfcBeamType",
+    #   "type_name_counts": Counter({ "TypeName": n, ... }),
+    #   "untyped": n
+    # }
+    base_details = {}
+
+    elements = list(model.by_type("IfcElement"))
+
+    for e in elements:
+        base = e.is_a()
+        base_counts[base] += 1
+
+        # Trova il RelatingType (IfcRelDefinesByType o IsTypedBy)
+        rt = None
+        # Preferisci IsTypedBy se disponibile
+        if getattr(e, "IsTypedBy", None):
+            for rel in e.IsTypedBy:
+                if rel and rel.is_a("IfcRelDefinesByType") and rel.RelatingType:
+                    rt = rel.RelatingType
+                    break
+        if rt is None:
+            for rel in getattr(e, "IsDefinedBy", []) or []:
+                if rel and rel.is_a("IfcRelDefinesByType") and rel.RelatingType:
+                    rt = rel.RelatingType
+                    break
+
+        if base not in base_details:
+            base_details[base] = {
+                "type_class": rt.is_a() if rt else f"Ifc{base[3:]}Type" if base.startswith("Ifc") else "IfcTypeObject",
+                "type_name_counts": Counter(),
+                "untyped": 0,
+            }
+
+        if rt is not None:
+            tname = getattr(rt, "Name", None) or "(unnamed type)"
+            base_details[base]["type_name_counts"][tname] += 1
+            # Aggiorna eventuale classe reale (più affidabile della derivazione dal nome base)
+            base_details[base]["type_class"] = rt.is_a()
+        else:
+            base_details[base]["untyped"] += 1
+
+    # Ordinamento classi base
+    if sort == "count":
+        sorted_bases = sorted(base_counts.items(), key=lambda x: (-x[1], x[0]))
+    else:
+        sorted_bases = sorted(base_counts.items(), key=lambda x: x[0])
+
     os.makedirs(output_dir, exist_ok=True)
     out_path = os.path.join(output_dir, filename)
 
+    total_elems = len(elements)
+    total_typed = 0
+    total_untyped = 0
+    total_unique_types = 0
+
+    lines = []
+    lines.append("List of element types present in the IFC model (IfcElement):")
+    lines.append(f"Total elements: {total_elems}")
+
+    for base, count in sorted_bases:
+        details = base_details.get(base, {"type_class": "IfcTypeObject", "type_name_counts": Counter(), "untyped": 0})
+        tclass = details["type_class"]
+        name_counts = details["type_name_counts"]
+        untyped = details["untyped"]
+
+        typed_count = sum(name_counts.values())
+        uniq_types = len(name_counts)
+
+        total_typed += typed_count
+        total_untyped += untyped
+        total_unique_types += uniq_types
+
+        lines.append(f"- {base} ({count})")
+        lines.append(f"  Types: {tclass} -> {uniq_types} unique; typed elements: {typed_count}")
+        for n, c in sorted(name_counts.items(), key=lambda x: (-x[1], x[0])):
+            lines.append(f"  - {n} ({c})")
+        if untyped:
+            lines.append(f"  Untyped elements: {untyped}")
+        lines.append(f"  Total {base}: {count}")
+        lines.append("")
+
+    lines.append("Overall totals:")
+    lines.append(f"- Typed elements: {total_typed}")
+    lines.append(f"- Untyped elements: {total_untyped}")
+    lines.append(f"- Unique Ifc…Type used: {total_unique_types}")
+
     with open(out_path, "w", encoding="utf-8") as f:
-        f.write("List of element types present in the IFC model (IfcElement):\n")
-        for tname, count in sorted_types:
-            f.write(f"- {tname} ({count})\n")
+        f.write("\n".join(lines))
 
-    return [t for t, _ in sorted_types]
-
-
-def get_rectangle_profiles_from_columns(model):
-    """Collect rectangle profiles from IfcColumn geometry; return dict name -> [(gid, profile, depth)]."""
-    profiles_dictionary: Dict[str, List[Tuple[str, object, float]]] = {}
-
-    for col in model.by_type("IfcColumn"):
-        if not col.Representation:
-            continue
-        for rep in col.Representation.Representations:
-            for item in rep.Items:
-                if item.is_a("IfcExtrudedAreaSolid"):
-                    profile = item.SweptArea
-                    if profile.is_a("IfcRectangleProfileDef"):
-                        name = profile.ProfileName or "Unnamed"
-                        profiles_dictionary.setdefault(name, []).append((col.GlobalId, profile, item.Depth))
-                elif item.is_a("IfcMappedItem"):
-                    mapped_rep = item.MappingSource.MappedRepresentation
-                    for mapped_item in mapped_rep.Items:
-                        if mapped_item.is_a("IfcExtrudedAreaSolid"):
-                            profile = mapped_item.SweptArea
-                            if profile.is_a("IfcRectangleProfileDef"):
-                                name = profile.ProfileName or "Unnamed"
-                                profiles_dictionary.setdefault(name, []).append((col.GlobalId, profile, mapped_item.Depth))
-    return profiles_dictionary
-
-
-def get_non_rectangle_profiles_from_columns(model):
-    """Collect non-rectangle profiles from IfcColumn geometry."""
-    profiles_dictionary: Dict[str, List[Tuple[str, object, float, str]]] = {}
-
-    for col in model.by_type("IfcColumn"):
-        if not col.Representation:
-            continue
-        for rep in col.Representation.Representations:
-            for item in rep.Items:
-                if item.is_a("IfcExtrudedAreaSolid"):
-                    profile = item.SweptArea
-                    if not profile.is_a("IfcRectangleProfileDef"):
-                        name = profile.ProfileName or profile.is_a() or "Unnamed"
-                        profiles_dictionary.setdefault(name, []).append((col.GlobalId, profile, item.Depth, profile.is_a()))
-                elif item.is_a("IfcMappedItem"):
-                    mapped_rep = item.MappingSource.MappedRepresentation
-                    for mapped_item in mapped_rep.Items:
-                        if mapped_item.is_a("IfcExtrudedAreaSolid"):
-                            profile = mapped_item.SweptArea
-                            if not profile.is_a("IfcRectangleProfileDef"):
-                                name = profile.ProfileName or profile.is_a() or "Unnamed"
-                                profiles_dictionary.setdefault(name, []).append((col.GlobalId, profile, mapped_item.Depth, profile.is_a()))
-    return profiles_dictionary
+    # Ritorno compatibile
+    return [(b, base_counts[b], None) for b, _ in sorted_bases]
 
 
 def get_element_type_name(element) -> str:
@@ -134,42 +175,60 @@ def _try_get_extrusion_depth_and_profile(element) -> Tuple[Optional[float], Opti
     return None, None
 
 
-def get_quantity_for_unit(element, unit: str) -> Optional[float]:
-    """Return quantity for unit: m3 (volume), m/lm/lbm (length), m2 (area)."""
-    unit = (unit or "").strip().lower()
-    qto = get_base_quantities(element)
+def _get_base_quantities(e):
+    """Return base quantities from IfcElementQuantity: dict with keys AREA, VOLUME, LENGTH."""
+    q = {"AREA": None, "VOLUME": None, "LENGTH": None}
+    for rel in getattr(e, "IsDefinedBy", []) or []:
+        if not rel or not rel.is_a("IfcRelDefinesByProperties"):
+            continue
+        pset = rel.RelatingPropertyDefinition
+        if not pset or not pset.is_a("IfcElementQuantity"):
+            continue
+        for it in getattr(pset, "Quantities", []) or []:
+            if it.is_a("IfcQuantityVolume"):
+                q["VOLUME"] = float(getattr(it, "VolumeValue", 0.0) or 0.0)
+            elif it.is_a("IfcQuantityArea"):
+                q["AREA"] = float(getattr(it, "AreaValue", 0.0) or 0.0)
+            elif it.is_a("IfcQuantityLength"):
+                q["LENGTH"] = float(getattr(it, "LengthValue", 0.0) or 0.0)
+    return q
 
-    if unit in ("m3", "m^3"):
-        if "NetVolume" in qto:
-            return float(qto["NetVolume"])
-        if "GrossVolume" in qto:
-            return float(qto["GrossVolume"])
-        depth, profile = _try_get_extrusion_depth_and_profile(element)
-        try:
-            if depth and profile and profile.is_a("IfcRectangleProfileDef"):
-                return float(profile.XDim) * float(profile.YDim) * float(depth)
-        except Exception:
-            pass
-        return None
 
-    if unit in ("m", "lm", "lbm"):
-        if "NetLength" in qto:
-            return float(qto["NetLength"])
-        if "GrossLength" in qto:
-            return float(qto["GrossLength"])
-        depth, _ = _try_get_extrusion_depth_and_profile(element)
-        if depth:
-            return float(depth)
-        return None
+def _norm_unit(u: Optional[str]) -> str:
+    if not u:
+        return "-"
+    s = str(u).strip().lower()
+    # Map Danish/variants
+    if s in {"m³", "m^3", "cubicmeter"}:
+        return "m3"
+    if s in {"m²", "m^2"}:
+        return "m2"
+    if s in {"lm", "lbm", "m1"}:
+        return "m"
+    return s
 
-    if unit in ("m2", "m²"):
-        if "NetArea" in qto:
-            return float(qto["NetArea"])
-        if "GrossArea" in qto:
-            return float(qto["GrossArea"])
-        return None
 
-    return None
+def get_quantity_for_unit(e, unit: str) -> Optional[float]:
+    """
+    Compute element quantity according to unit:
+    - m3 -> VOLUME (Net/Gross from BaseQuantities)
+    - m2 -> AREA
+    - m  -> LENGTH
+    - otherwise -> 1 (count)
+    Returns None if not available.
+    """
+    u = _norm_unit(unit)
+    if u in {"-", ""}:
+        return 1.0
+    q = _get_base_quantities(e)
+    if u == "m3":
+        return q["VOLUME"]
+    if u == "m2":
+        return q["AREA"]
+    if u == "m":
+        return q["LENGTH"]
+    # Fallback to count if unknown unit
+    return 1.0
 
 
 def collect_candidates_by_classes(model, ifc_classes: Tuple[str, ...]) -> List[object]:

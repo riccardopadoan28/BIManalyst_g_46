@@ -1,6 +1,0 @@
-List of element types present in the IFC model (IfcElement):
-- IfcBeam (309)
-- IfcColumn (417)
-- IfcOpeningElement (2)
-- IfcSlab (217)
-- IfcWall (63)
