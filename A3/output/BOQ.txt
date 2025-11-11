@@ -1,5 +1,5 @@
 BILL OF QUANTITIES (BOQ)
-Date: 2025-11-10
+Date: 2025-11-11
 
 Item        | Description                                  | Unit | Level | Quantity    | Unit Rate | Amount    
 ────────────┼──────────────────────────────────────────────┼──────┼───────┼─────────────┼───────────┼───────────
