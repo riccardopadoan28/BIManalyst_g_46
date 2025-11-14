@@ -10,7 +10,9 @@ import ifcopenshell as ifc
 
 from .helper_read import build_price_index_by_text, normalize_text, parse_decimal_eu
 
-
+# Writes: for each IfcElement (e.g. IfcBeam), the related Ifc...Type (e.g. IfcBeamType),
+# number of instances linked to each Type, number of elements without Type, and totals.
+# Returns the list (type_name, count, None) for compatibility.
 def get_all_struct_elements(
     model,
     output_dir="output",
@@ -19,15 +21,11 @@ def get_all_struct_elements(
     sort: str = "count",
     include_percent: bool = False
 ):
-    """
-    Scrive: per ogni IfcElement (es. IfcBeam), i relativi Ifc...Type (es. IfcBeamType),
-    numero di istanze collegate a ciascun Type, numero di elementi senza Type e i totali.
-    Ritorna la lista (type_name, count, None) per compatibilità.
-    """
-    # Conteggi per classe base (IfcBeam, IfcColumn, ...)
+
+    # Counts for base class (IfcBeam, IfcColumn, ...)
     base_counts = defaultdict(int)
 
-    # Dettagli per classe base
+    # Details for base class
     # base_details[base] = {
     #   "type_class": "IfcBeamType",
     #   "type_name_counts": Counter({ "TypeName": n, ... }),
@@ -41,9 +39,9 @@ def get_all_struct_elements(
         base = e.is_a()
         base_counts[base] += 1
 
-        # Trova il RelatingType (IfcRelDefinesByType o IsTypedBy)
+        # Find RelatingType (IfcRelDefinesByType or IsTypedBy)
         rt = None
-        # Preferisci IsTypedBy se disponibile
+        # Prefer IsTypedBy if available
         if getattr(e, "IsTypedBy", None):
             for rel in e.IsTypedBy:
                 if rel and rel.is_a("IfcRelDefinesByType") and rel.RelatingType:
@@ -65,12 +63,12 @@ def get_all_struct_elements(
         if rt is not None:
             tname = getattr(rt, "Name", None) or "(unnamed type)"
             base_details[base]["type_name_counts"][tname] += 1
-            # Aggiorna eventuale classe reale (più affidabile della derivazione dal nome base)
+            # Update actual class (more reliable than deriving from base name)
             base_details[base]["type_class"] = rt.is_a()
         else:
             base_details[base]["untyped"] += 1
 
-    # Ordinamento classi base
+    # Sort base classes
     if sort == "count":
         sorted_bases = sorted(base_counts.items(), key=lambda x: (-x[1], x[0]))
     else:
@@ -118,46 +116,26 @@ def get_all_struct_elements(
     with open(out_path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
 
-    # Ritorno compatibile
+    # Compatible return
     return [(b, base_counts[b], None) for b, _ in sorted_bases]
 
-
+# Get the type name of an element
 def get_element_type_name(element) -> str:
-    """Return assigned type name (if any) for an element."""
-    try:
-        if getattr(element, "IsTypedBy", None):
-            rel = element.IsTypedBy[0]
-            t = rel.RelatingType
-            return getattr(t, "Name", "") or ""
-    except Exception:
-        pass
-    return ""
+    t = ifc.util.element.get_type(element)
+    return getattr(t, "Name", "") if t else ""
 
-
+# Get best matching candidate from list by name similarity
 def get_base_quantities(element) -> Dict[str, float]:
-    """Extract basic QTO (length/area/volume) from IfcElementQuantity property sets."""
-    out: Dict[str, float] = {}
-    try:
-        for rel in getattr(element, "IsDefinedBy", []) or []:
-            if not rel.is_a("IfcRelDefinesByProperties"):
-                continue
-            qset = rel.RelatingPropertyDefinition
-            if not qset or not qset.is_a("IfcElementQuantity"):
-                continue
-            for q in getattr(qset, "Quantities", []) or []:
-                if q.is_a("IfcQuantityVolume"):
-                    out[q.Name] = float(q.VolumeValue)
-                elif q.is_a("IfcQuantityLength"):
-                    out[q.Name] = float(q.LengthValue)
-                elif q.is_a("IfcQuantityArea"):
-                    out[q.Name] = float(q.AreaValue)
-    except Exception:
-        pass
+    out = {}
+    qto = ifc.util.element.get_qto(element)
+    for k, v in qto.items():
+        if isinstance(v, (int, float)):
+            out[k] = float(v)
     return out
 
-
+# Get extruded depth and profile from direct/mapped geometry
+# Best-effort: get extruded depth and profile from direct/mapped geometry.
 def _try_get_extrusion_depth_and_profile(element) -> Tuple[Optional[float], Optional[object]]:
-    """Best-effort: get extruded depth and profile from direct/mapped geometry."""
     if not getattr(element, "Representation", None):
         return None, None
     try:
@@ -174,7 +152,7 @@ def _try_get_extrusion_depth_and_profile(element) -> Tuple[Optional[float], Opti
         pass
     return None, None
 
-
+# Get base quantities from IfcElementQuantity
 def _get_base_quantities(e):
     """Return base quantities from IfcElementQuantity: dict with keys AREA, VOLUME, LENGTH."""
     q = {"AREA": None, "VOLUME": None, "LENGTH": None}
@@ -193,7 +171,7 @@ def _get_base_quantities(e):
                 q["LENGTH"] = float(getattr(it, "LengthValue", 0.0) or 0.0)
     return q
 
-
+# Normalize unit strings for comparison
 def _norm_unit(u: Optional[str]) -> str:
     if not u:
         return "-"
@@ -207,7 +185,7 @@ def _norm_unit(u: Optional[str]) -> str:
         return "m"
     return s
 
-
+# Get quantity for element based on unit
 def get_quantity_for_unit(e, unit: str) -> Optional[float]:
     """
     Compute element quantity according to unit:
@@ -230,9 +208,8 @@ def get_quantity_for_unit(e, unit: str) -> Optional[float]:
     # Fallback to count if unknown unit
     return 1.0
 
-
+# Collect elements by specific IFC classes or all IfcElement if empty.
 def collect_candidates_by_classes(model, ifc_classes: Tuple[str, ...]) -> List[object]:
-    """Collect elements by specific IFC classes or all IfcElement if empty."""
     if not ifc_classes:
         return model.by_type("IfcElement")
     out: List[object] = []
@@ -240,7 +217,7 @@ def collect_candidates_by_classes(model, ifc_classes: Tuple[str, ...]) -> List[o
         out.extend(model.by_type(cls))
     return out
 
-
+# Map elements to CSV rows using type names, producing quantity and cost lines.
 def map_elements_to_price_rows_by_type_name(
     model,
     rows: List[Dict[str, str]],
@@ -250,7 +227,6 @@ def map_elements_to_price_rows_by_type_name(
     unit_cost_col: str = "Unit Cost",
     filter_ifc_classes: Tuple[str, ...] = ("IfcBeam", "IfcColumn", "IfcMember", "IfcSlab", "IfcWall", "IfcWallStandardCase"),
 ) -> List[Dict[str, object]]:
-    """Map elements to CSV rows using type names, producing quantity and cost lines."""
     idx = build_price_index_by_text(rows, text_col=text_col)
     elements = collect_candidates_by_classes(model, filter_ifc_classes)
     out: List[Dict[str, object]] = []
@@ -275,7 +251,7 @@ def map_elements_to_price_rows_by_type_name(
         out.append(
             {
                 "element": el,
-                "global_id": el.GlobalId,
+                "global_id": ifc.util.element.get_guid(el),
                 "type_name": tname,
                 "row": row,
                 "unit": unit,

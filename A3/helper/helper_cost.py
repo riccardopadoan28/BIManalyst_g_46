@@ -17,21 +17,19 @@ from ifcopenshell.guid import new as new_guid
 try:
     from ifcopenshell import api as ifc_api
 except Exception as e:
-    raise ImportError("ifcopenshell.api non disponibile. Installa IfcOpenShell con le API abilitate.") from e
+    raise ImportError("ifcopenshell.api not available. Install IfcOpenShell with API support.") from e
 
 from .helper_read import read_price_list, normalize_text, parse_decimal_eu
 
-
-def ensure_cost_schedule(ifc_file, name: str = "Price List", predefined_type: str = "COSTPLAN"):
-    """Return existing IfcCostSchedule by name or create one."""
-    for s in ifc_file.by_type("IfcCostSchedule"):
+# Find or create IfcCostSchedule by name ensuring only one exists.
+def ensure_cost_schedule(model, name: str = "Price List", predefined_type: str = "COSTPLAN"):
+    for s in model.by_type("IfcCostSchedule"):
         if (getattr(s, "Name", None) or "") == name:
             return s
-    return ifc_api.run("cost.add_cost_schedule", ifc_file, name=name, predefined_type=predefined_type)
+    return ifc_api.run("cost.add_cost_schedule", model, name=name, predefined_type=predefined_type)
 
-
+# Collect direct child IfcCostItem nested under schedule. Searching existing items.
 def _schedule_children_cost_items(schedule) -> List[object]:
-    """Collect direct child IfcCostItem nested under schedule."""
     children: List[object] = []
     for rel in getattr(schedule, "IsNestedBy", []) or []:
         for o in getattr(rel, "RelatedObjects", []) or []:
@@ -39,9 +37,8 @@ def _schedule_children_cost_items(schedule) -> List[object]:
                 children.append(o)
     return children
 
-
+# Find item by Name or Identification among schedule children. Avoid duplicate cost items
 def _find_item_by_name_or_identification(schedule, name: str, identification: str | None):
-    """Find item by Name or Identification among schedule children."""
     for item in _schedule_children_cost_items(schedule):
         if (getattr(item, "Name", None) or "") == name:
             return item
@@ -49,13 +46,11 @@ def _find_item_by_name_or_identification(schedule, name: str, identification: st
             return item
     return None
 
-
+# Find an IfcCostItem (by name/ident) or create one under the schedule.
 def add_or_get_cost_item(model, cost_schedule, name, identification=None, description=None):
-    """Find an IfcCostItem (by name/ident) or create one under the schedule."""
     for ci in model.by_type("IfcCostItem"):
         if ci.Name == name and (identification is None or getattr(ci, "Identification", None) == identification):
             return ci
-
     item = ifc_api.run("cost.add_cost_item", model, cost_schedule=cost_schedule)
     attrs = {"Name": name}
     if identification is not None:
@@ -66,21 +61,19 @@ def add_or_get_cost_item(model, cost_schedule, name, identification=None, descri
         ifc_api.run("cost.edit_cost_item", model, cost_item=item, attributes=attrs)
     return item
 
-
-def add_unit_cost_value(ifc_file, item, amount, cost_type="UNIT"):
-    """Create IfcCostValue under item; set AppliedValue and store label in Name."""
-    cost_value = ifc_api.run("cost.add_cost_value", ifc_file, parent=item)
+# Creates an IfcCostValue as a child of a cost item, set AppliedValue and store label in Name
+def add_unit_cost_value(model, item, amount, cost_type="UNIT"):
+    cost_value = ifc_api.run("cost.add_cost_value", model, parent=item)
     ifc_api.run(
         "cost.edit_cost_value",
-        ifc_file,
+        model,
         cost_value=cost_value,
         attributes={"AppliedValue": float(amount), "Name": str(cost_type)},
     )
     return cost_value
 
-
+# Fuzzy match element name to the best CSV row on the given column.
 def _best_match(element_name: str, candidates: List[Dict[str, str]], name_col: str) -> Dict[str, str] | None:
-    """Fuzzy match element name to the best CSV row on the given column."""
     if not candidates:
         return None
     base = (element_name or "").strip().lower()
@@ -88,9 +81,9 @@ def _best_match(element_name: str, candidates: List[Dict[str, str]], name_col: s
     scores.sort(key=lambda x: x[0], reverse=True)
     return scores[0][1] if scores else None
 
-
+# Create schedule and one IfcCostItem (+ unit cost) per CSV row; return (schedule, code->item). importing price lists directly into IFC
 def import_price_list_as_cost_schedule_from_csv(
-    ifc_file,
+    model,
     csv_path: str,
     *,
     schedule_name: str = "Price List 2025",
@@ -100,9 +93,9 @@ def import_price_list_as_cost_schedule_from_csv(
     delimiter: str = ";",
     encoding: str = "cp1252",
 ) -> Tuple[object, Dict[str, object]]:
-    """Create schedule and one IfcCostItem (+ unit cost) per CSV row; return (schedule, code->item)."""
+
     rows = read_price_list(csv_path, delimiter=delimiter, encoding=encoding)
-    schedule = ensure_cost_schedule(ifc_file, schedule_name)
+    schedule = ensure_cost_schedule(model, schedule_name)
 
     code_to_item: Dict[str, object] = {}
     for r in rows:
@@ -117,16 +110,16 @@ def import_price_list_as_cost_schedule_from_csv(
         except Exception:
             unit_cost = None
 
-        item = add_or_get_cost_item(ifc_file, schedule, name=name, identification=code)
+        item = add_or_get_cost_item(model, schedule, name=name, identification=code)
         if unit_cost is not None:
-            add_unit_cost_value(ifc_file, item, amount=unit_cost, cost_type="UNIT")
+            add_unit_cost_value(model, item, amount=unit_cost, cost_type="UNIT")
         code_to_item[code] = item
 
     return schedule, code_to_item
 
 
 def assign_elements_to_cost_items_by_type_name_from_csv(
-    ifc_file,
+    model,
     csv_path: str,
     *,
     schedule_name: str = "Price List 2025",
@@ -144,7 +137,7 @@ def assign_elements_to_cost_items_by_type_name_from_csv(
     - fuzzy match by Name
     - create/reuse IfcCostItem (by Identification Code), add unit cost, relate element
     """
-    schedule = ensure_cost_schedule(ifc_file, schedule_name)
+    schedule = ensure_cost_schedule(model, schedule_name)
     rows = read_price_list(csv_path, delimiter=delimiter, encoding=encoding)
 
     # Index rows by IFC class
@@ -158,7 +151,7 @@ def assign_elements_to_cost_items_by_type_name_from_csv(
     skipped_no_candidates = 0
     skipped_no_match = 0
 
-    for e in ifc_file.by_type("IfcElement"):
+    for e in model.by_type("IfcElement"):
         candidates = by_class.get(e.is_a(), [])
         if not candidates:
             skipped_no_candidates += 1
@@ -178,7 +171,7 @@ def assign_elements_to_cost_items_by_type_name_from_csv(
         item = code_to_item.get(code)
         if not item:
             item = add_or_get_cost_item(
-                ifc_file,
+                model,
                 schedule,
                 name=(match.get(text_col) or "").strip() or code,
                 identification=code,
@@ -189,7 +182,7 @@ def assign_elements_to_cost_items_by_type_name_from_csv(
             except Exception:
                 unit_cost = None
             if unit_cost is not None:
-                add_unit_cost_value(ifc_file, item, amount=unit_cost, cost_type="UNIT")
+                add_unit_cost_value(model, item, amount=unit_cost, cost_type="UNIT")
             code_to_item[code] = item
 
         # Skip if already assigned to this control
@@ -205,13 +198,13 @@ def assign_elements_to_cost_items_by_type_name_from_csv(
         try:
             ifc_api.run(
                 "control.assign_control",
-                ifc_file,
+                model,
                 relating_control=item,
                 related_object=e,
             )
             assigned += 1  # count successful links
         except ModuleNotFoundError:
-            ifc_file.create_entity(
+            model.create_entity(
                 "IfcRelAssignsToControl",
                 GlobalId=new_guid(),
                 RelatedObjects=[e],

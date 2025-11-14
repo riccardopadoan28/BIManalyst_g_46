@@ -32,7 +32,7 @@ def main():
     if not model_path.is_file():
         raise FileNotFoundError(f"No file found at {model_path}!")
 
-    # Open IFC directly (no copy stored in repo)
+    # Open IFC model (original file is never overwritten; all changes are saved to a new copy)
     model = ifcopenshell.open(str(model_path))
     print(f"Opened IFC: {model_path}")
 
@@ -40,7 +40,9 @@ def main():
     os.makedirs(output_dir, exist_ok=True)
 
     # Assign cost items from price list
-    price_csv = os.path.join(os.path.dirname(__file__), "input", "price_list.csv")
+    price_csv = input("Enter path to price_list.csv: ").strip()
+    if not os.path.isfile(price_csv):
+        raise FileNotFoundError(f"No file found at {price_csv}!")
     assign_elements_to_cost_items_by_type_name_from_csv(
         model,
         price_csv,
@@ -56,6 +58,14 @@ def main():
     print(f"Written BOQ: {os.path.abspath(boq_path)}")
     print(f"Written QTO (totals): {os.path.abspath(qto_tot_path)}")
     print(f"Written BOQ (totals): {os.path.abspath(boq_tot_path)}")
+
+    # Generate output IFC filename based on input model_path
+    input_stem = model_path.stem
+    input_ext = model_path.suffix
+    output_ifc_name = f"{input_stem}_cost{input_ext}"
+    output_ifc_path = os.path.join(output_dir, output_ifc_name)
+    model.write(output_ifc_path)
+    print(f"Updated IFC written to: {os.path.abspath(output_ifc_path)}")
 
 
 if __name__ == "__main__":

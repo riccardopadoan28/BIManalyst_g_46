@@ -1,5 +1,5 @@
 TENDER QUANTIFICATION (QTO)
-Date: 2025-11-11
+Date: 2025-11-14
 Total Elements: 1008
 
 #  | IfcTypeClass      | Type Name                                       | Level                                            | Count
