@@ -281,13 +281,13 @@ def write_qto_types_no_cost(model, output_dir="output", filename="QTO.txt"):
 
     today = datetime.date.today().isoformat()
     lines = []
-    lines.append("TENDER QUANTIFICATION (QTO)")
+    lines.append("Quantity Take Off (QTO)")
     lines.append(f"Date: {today}")
     lines.append(f"Total Elements: {total}")
     lines.append("")
     lines.extend(table_lines)
     lines.append("")
-    lines.append(f"GRAND TOTAL COUNT = {total}")
+    lines.append(f"TOTAL COUNT = {total}")
 
     with open(out_path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
@@ -336,13 +336,13 @@ def write_qto_types_no_cost_totals(model, output_dir="output", filename="QTO_tot
 
     today = datetime.date.today().isoformat()
     lines = []
-    lines.append("TENDER QUANTIFICATION (QTO) – TOTALS")
+    lines.append("QUANTITY TAKE OFF (QTO) – TOTALS ONLY")
     lines.append(f"Date: {today}")
     lines.append(f"Total Elements: {total}")
     lines.append("")
     lines.extend(table_lines)
     lines.append("")
-    lines.append(f"GRAND TOTAL COUNT = {total}")
+    lines.append(f"TOTAL COUNT = {total}")
 
     with open(out_path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
@@ -440,7 +440,7 @@ def write_boq_report(model, output_dir="output", filename="BOQ.txt") -> str:
         # Item subtotal line
         rows.append(["", "Item Subtotal", "", "", "", "", f"{item_total:.2f}"])
 
-    headers = ["Item", "Description", "Unit", "Level", "Quantity", "Unit Rate", "Amount"]
+    headers = ["Item", "Description", "Unit", "Level", "Quantity", "Unit Cost", "Total Amount"]
     table_lines = _fmt_table(headers, rows)
 
     today = datetime.date.today().isoformat()
@@ -450,7 +450,7 @@ def write_boq_report(model, output_dir="output", filename="BOQ.txt") -> str:
     lines.append("")
     lines.extend(table_lines)
     lines.append("")
-    lines.append(f"GRAND TOTAL: {grand_total:.2f}")
+    lines.append(f"TOTAL: {grand_total:.2f}")
 
     with open(out_path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
@@ -535,17 +535,17 @@ def write_boq_report_totals(model, output_dir="output", filename="BOQ_total.txt"
         grand_total += amount
         rows.append([ident, descr, unit, f"{qty_sum:.4f}", f"{rate:.2f}", f"{amount:.2f}"])
 
-    headers = ["Item", "Description", "Unit", "Quantity", "Unit Rate", "Amount"]
+    headers = ["Item", "Description", "Unit", "Quantity", "Unit Cost", "Total Amount"]
     table_lines = _fmt_table(headers, rows)
 
     today = datetime.date.today().isoformat()
     lines = []
-    lines.append("BILL OF QUANTITIES (BOQ) – TOTALS")
+    lines.append("BILL OF QUANTITIES (BOQ) – TOTALS ONLY")
     lines.append(f"Date: {today}")
     lines.append("")
     lines.extend(table_lines)
     lines.append("")
-    lines.append(f"GRAND TOTAL: {grand_total:.2f}")
+    lines.append(f"TOTAL: {grand_total:.2f}")
 
     with open(out_path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))

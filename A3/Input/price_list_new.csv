@@ -1,5 +1,5 @@
 Identification Code;Name;Ifc Match;IfcCostValue;Unit
-04.10.82;Betonbjælke;IfcBeam;4056,05;m3
+04.10.82,01;Betonbjaelke;IfcBeam;4056,05;m3
 04.22.33,01;15 mm Promatect-200 plade, HEB 160;IfcBeam;263,61;lbm
 04.22.33,02;15 mm Promatect-200 plade, HEB 200;IfcBeam;313,67;lbm
 04.22.33,01;15 mm Promatect-200 plade, HEB 160;IfcColumn;263,61;lbm

@@ -40,7 +40,7 @@ def main():
     os.makedirs(output_dir, exist_ok=True)
 
     # Assign cost items from price list
-    price_csv = input("Enter path to price_list.csv: ").strip()
+    price_csv = input("Enter price list path:").strip()
     if not os.path.isfile(price_csv):
         raise FileNotFoundError(f"No file found at {price_csv}!")
     assign_elements_to_cost_items_by_type_name_from_csv(

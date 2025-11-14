@@ -1,14 +1,14 @@
 BILL OF QUANTITIES (BOQ)
 Date: 2025-11-14
 
-Item        | Description                                 | Unit | Level | Quantity    | Unit Rate | Amount      
+Item        | Description                                 | Unit | Level | Quantity    | Unit Cost | Total Amount
 ────────────┼─────────────────────────────────────────────┼──────┼───────┼─────────────┼───────────┼─────────────
-04.10.82    | Betonbjælke                                 | -    | B_00  | 23.0000     | 4056.05   | 93289.15    
-04.10.82    | Betonbjælke                                 | -    | F_00  | 42.0000     | 4056.05   | 170354.10   
-04.10.82    | Betonbjælke                                 | -    | F_01  | 102.0000    | 4056.05   | 413717.10   
-04.10.82    | Betonbjælke                                 | -    | F_02  | 88.0000     | 4056.05   | 356932.40   
-04.10.82    | Betonbjælke                                 | -    | Roof  | 54.0000     | 4056.05   | 219026.70   
-            | Item Subtotal                               |      |       |             |           | 1253319.45  
+04.10.82,01 | Betonbjaelke                                | m3   | B_00  | 17.9755     | 4056.05   | 72909.34    
+04.10.82,01 | Betonbjaelke                                | m3   | F_00  | 21.0020     | 4056.05   | 85185.33    
+04.10.82,01 | Betonbjaelke                                | m3   | F_01  | 50.3844     | 4056.05   | 204361.65   
+04.10.82,01 | Betonbjaelke                                | m3   | F_02  | 7.4059      | 4056.05   | 30038.65    
+04.10.82,01 | Betonbjaelke                                | m3   | Roof  | 5.7873      | 4056.05   | 23473.55    
+            | Item Subtotal                               |      |       |             |           | 415968.51   
 04.22.33,02 | 15 mm Promatect-200 plade, HEB 200          | lbm  | B_00  | 290400.0000 | 313.67    | 91089768.00 
 04.22.33,02 | 15 mm Promatect-200 plade, HEB 200          | lbm  | F_00  | 351210.0000 | 313.67    | 110164040.70
 04.22.33,02 | 15 mm Promatect-200 plade, HEB 200          | lbm  | F_01  | 75390.0000  | 313.67    | 23647581.30 
@@ -36,4 +36,4 @@ Item        | Description                                 | Unit | Level | Quant
 04.56.54,04 | Vægge, MBK 2412, betonelementer             | m2   | B_00  | 424.1786    | 134.32    | 56975.67    
             | Item Subtotal                               |      |       |             |           | 56975.67    
 
-GRAND TOTAL: 350982170.24
+TOTAL: 350144819.30

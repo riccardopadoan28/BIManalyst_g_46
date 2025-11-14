@@ -1,4 +1,4 @@
-TENDER QUANTIFICATION (QTO)
+Quantity Take Off (QTO)
 Date: 2025-11-14
 Total Elements: 1008
 
@@ -101,4 +101,4 @@ Total Elements: 1008
    | IfcOpeningElement | (untyped)                                       | B_00                                             | 2    
    |                   | Subtotal                                        | IfcOpeningElement                                | 2    
 
-GRAND TOTAL COUNT = 1008
+TOTAL COUNT = 1008

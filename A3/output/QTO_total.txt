@@ -1,4 +1,4 @@
-TENDER QUANTIFICATION (QTO) – TOTALS
+QUANTITY TAKE OFF (QTO) – TOTALS ONLY
 Date: 2025-11-14
 Total Elements: 1008
 
@@ -40,4 +40,4 @@ Total Elements: 1008
 34 | IfcWallType       | Basic Wall:Wall_200Concrete                     | 59   
    | IfcOpeningElement | (untyped)                                       | 2    
 
-GRAND TOTAL COUNT = 1008
+TOTAL COUNT = 1008

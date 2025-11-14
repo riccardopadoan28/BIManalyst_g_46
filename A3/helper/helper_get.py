@@ -7,6 +7,7 @@ from collections import defaultdict, Counter
 from typing import Dict, List, Tuple, Optional
 import os
 import ifcopenshell as ifc
+import ifcopenshell.api
 
 from .helper_read import build_price_index_by_text, normalize_text, parse_decimal_eu
 
@@ -121,8 +122,15 @@ def get_all_struct_elements(
 
 # Get the type name of an element
 def get_element_type_name(element) -> str:
-    t = ifc.util.element.get_type(element)
-    return getattr(t, "Name", "") if t else ""
+    import ifcopenshell.util
+    t = ifcopenshell.util.element.get_type(element)
+    if t and hasattr(t, "Name"):
+        return str(t.Name)
+    if hasattr(element, "PredefinedType"):
+        return str(getattr(element, "PredefinedType"))
+    if hasattr(element, "Name"):
+        return str(getattr(element, "Name"))
+    return element.is_a()
 
 # Get best matching candidate from list by name similarity
 def get_base_quantities(element) -> Dict[str, float]:
@@ -152,10 +160,9 @@ def _try_get_extrusion_depth_and_profile(element) -> Tuple[Optional[float], Opti
         pass
     return None, None
 
-# Get base quantities from IfcElementQuantity
+# Get base quantities from IfcElementQuantity: dict with keys AREA, VOLUME, LENGTH."""
 def _get_base_quantities(e):
-    """Return base quantities from IfcElementQuantity: dict with keys AREA, VOLUME, LENGTH."""
-    q = {"AREA": None, "VOLUME": None, "LENGTH": None}
+    q = {"AREA": None, "VOLUME": None, "LENGTH": None, "HEIGHT": None}
     for rel in getattr(e, "IsDefinedBy", []) or []:
         if not rel or not rel.is_a("IfcRelDefinesByProperties"):
             continue
@@ -169,6 +176,9 @@ def _get_base_quantities(e):
                 q["AREA"] = float(getattr(it, "AreaValue", 0.0) or 0.0)
             elif it.is_a("IfcQuantityLength"):
                 q["LENGTH"] = float(getattr(it, "LengthValue", 0.0) or 0.0)
+                # Se la quantità si chiama "Height", salva anche come HEIGHT
+                if getattr(it, "Name", "").lower() == "height":
+                    q["HEIGHT"] = float(getattr(it, "LengthValue", 0.0) or 0.0)
     return q
 
 # Normalize unit strings for comparison
@@ -185,27 +195,74 @@ def _norm_unit(u: Optional[str]) -> str:
         return "m"
     return s
 
+def get_project_units(model):
+    """Return a dict with the project's units for LENGTH, AREA, VOLUME."""
+    units = ifcopenshell.api.unit.get_units(model)
+    unit_map = {}
+    for u in units:
+        if hasattr(u, "UnitType"):
+            if u.UnitType == "LENGTHUNIT":
+                unit_map["LENGTH"] = getattr(u, "Prefix", "") + u.Name if hasattr(u, "Prefix") else u.Name
+            elif u.UnitType == "AREAUNIT":
+                unit_map["AREA"] = getattr(u, "Prefix", "") + u.Name if hasattr(u, "Prefix") else u.Name
+            elif u.UnitType == "VOLUMEUNIT":
+                unit_map["VOLUME"] = getattr(u, "Prefix", "") + u.Name if hasattr(u, "Prefix") else u.Name
+    return unit_map
+
 # Get quantity for element based on unit
-def get_quantity_for_unit(e, unit: str) -> Optional[float]:
+def get_quantity_for_unit(e, unit: str, model=None) -> Optional[float]:
     """
-    Compute element quantity according to unit:
-    - m3 -> VOLUME (Net/Gross from BaseQuantities)
-    - m2 -> AREA
-    - m  -> LENGTH
-    - otherwise -> 1 (count)
-    Returns None if not available.
+    Compute element quantity according to unit, converting if necessary.
+    Requires 'model' argument to detect source units.
     """
     u = _norm_unit(unit)
     if u in {"-", ""}:
         return 1.0
     q = _get_base_quantities(e)
-    if u == "m3":
-        return q["VOLUME"]
-    if u == "m2":
-        return q["AREA"]
+
+    # Default: assume model units are meters
+    source_units = {"LENGTH": "m", "AREA": "m2", "VOLUME": "m3", "HEIGHT": "m"}
+    if model is not None:
+        detected = get_project_units(model)
+        for k in detected:
+            # Normalize to m, m2, m3
+            if detected[k].lower().startswith("milli"):
+                source_units[k] = "mm" if k == "LENGTH" or k == "HEIGHT" else ("mm2" if k == "AREA" else "mm3")
+            elif detected[k].lower().startswith("centi"):
+                source_units[k] = "cm" if k == "LENGTH" or k == "HEIGHT" else ("cm2" if k == "AREA" else "cm3")
+            elif detected[k].lower().startswith("meter"):
+                source_units[k] = "m" if k == "LENGTH" or k == "HEIGHT" else ("m2" if k == "AREA" else "m3")
+
+    # Conversion factors
+    unit_factors = {
+        ("mm", "m"): 0.001,
+        ("cm", "m"): 0.01,
+        ("m", "m"): 1.0,
+        ("mm2", "m2"): 0.000001,
+        ("cm2", "m2"): 0.0001,
+        ("m2", "m2"): 1.0,
+        ("mm3", "m3"): 0.000000001,
+        ("cm3", "m3"): 0.000001,
+        ("m3", "m3"): 1.0,
+    }
+
     if u == "m":
-        return q["LENGTH"]
-    # Fallback to count if unknown unit
+        val = q["LENGTH"]
+        factor = unit_factors.get((source_units["LENGTH"], "m"), 1.0)
+        return val * factor if val is not None else None
+    if u == "m2":
+        val = q["AREA"]
+        factor = unit_factors.get((source_units["AREA"], "m2"), 1.0)
+        return val * factor if val is not None else None
+    if u == "m3":
+        val = q["VOLUME"]
+        factor = unit_factors.get((source_units["VOLUME"], "m3"), 1.0)
+        return val * factor if val is not None else None
+    if u == "height":
+        val = q["HEIGHT"]
+        factor = unit_factors.get((source_units["HEIGHT"], "m"), 1.0)
+        return val * factor if val is not None else None
+
     return 1.0
 
 # Collect elements by specific IFC classes or all IfcElement if empty.
@@ -225,9 +282,17 @@ def map_elements_to_price_rows_by_type_name(
     text_col: str = "Text",
     unit_col: str = "Unit",
     unit_cost_col: str = "Unit Cost",
-    filter_ifc_classes: Tuple[str, ...] = ("IfcBeam", "IfcColumn", "IfcMember", "IfcSlab", "IfcWall", "IfcWallStandardCase"),
+    filter_ifc_classes: Tuple[str, ...] = None,
 ) -> List[Dict[str, object]]:
     idx = build_price_index_by_text(rows, text_col=text_col)
+
+    # Dynamically detect present IFC classes if not provided
+    if filter_ifc_classes is None:
+        # Get all unique IFC classes from elements in the model
+        elements = model.by_type("IfcElement")
+        present_classes = set(e.is_a() for e in elements)
+        filter_ifc_classes = tuple(sorted(present_classes))
+
     elements = collect_candidates_by_classes(model, filter_ifc_classes)
     out: List[Dict[str, object]] = []
 
@@ -238,8 +303,8 @@ def map_elements_to_price_rows_by_type_name(
         if not row:
             continue
 
-        unit = (row.get(unit_col) or "").strip()
-        qty = get_quantity_for_unit(el, unit)
+        unit = (row.get(unit_col) or "-").strip()
+        qty = get_quantity_for_unit(el, unit, model=model)
         if qty is None:
             continue
 
