@@ -426,7 +426,7 @@ def write_boq_report(model, output_dir="output", filename="BOQ.txt") -> str:
         level_qty = defaultdict(float)
         for e in elems:
             lvl = _get_level_name(e)
-            q = get_quantity_for_unit(e, unit)
+            q = get_quantity_for_unit(e, unit, model=model)  # ✅ Aggiungi model=model
             if q is None:
                 q = 1.0
             level_qty[lvl] += float(q)
@@ -435,7 +435,10 @@ def write_boq_report(model, output_dir="output", filename="BOQ.txt") -> str:
         for lvl, qty in sorted(level_qty.items(), key=lambda x: (x[0] or "",)):
             amount = rate * qty
             item_total += amount
-            rows.append([ident, descr, unit, lvl, f"{qty:.4f}", f"{rate:.2f}", f"{amount:.2f}"])
+            rows.append([ident, descr, unit, lvl, 
+                        f"{qty:.4f}".replace('.', ','),  # ✅ Virgola per qty
+                        f"{rate:.2f}".replace('.', ','),  # ✅ Virgola per rate
+                        f"{amount:.2f}".replace('.', ',')])  # ✅ Virgola per amount
         grand_total += item_total
         # Item subtotal line
         rows.append(["", "Item Subtotal", "", "", "", "", f"{item_total:.2f}"])
@@ -527,7 +530,7 @@ def write_boq_report_totals(model, output_dir="output", filename="BOQ_total.txt"
 
         qty_sum = 0.0
         for e in elems:
-            q = get_quantity_for_unit(e, unit)
+            q = get_quantity_for_unit(e, unit, model=model)  # ✅ Aggiungi model=model
             if q is None:
                 q = 1.0
             qty_sum += float(q)

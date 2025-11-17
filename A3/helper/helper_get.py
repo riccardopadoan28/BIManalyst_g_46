@@ -141,34 +141,22 @@ def get_base_quantities(element) -> Dict[str, float]:
             out[k] = float(v)
     return out
 
-# Get extruded depth and profile from direct/mapped geometry
-# Best-effort: get extruded depth and profile from direct/mapped geometry.
-def _try_get_extrusion_depth_and_profile(element) -> Tuple[Optional[float], Optional[object]]:
-    if not getattr(element, "Representation", None):
-        return None, None
-    try:
-        for rep in element.Representation.Representations:
-            for item in getattr(rep, "Items", []) or []:
-                if item.is_a("IfcExtrudedAreaSolid"):
-                    return float(item.Depth), item.SweptArea
-                if item.is_a("IfcMappedItem"):
-                    mapped = item.MappingSource.MappedRepresentation
-                    for mi in mapped.Items:
-                        if mi.is_a("IfcExtrudedAreaSolid"):
-                            return float(mi.Depth), mi.SweptArea
-    except Exception:
-        pass
-    return None, None
-
 # Get base quantities from IfcElementQuantity: dict with keys AREA, VOLUME, LENGTH."""
 def _get_base_quantities(e):
     q = {"AREA": None, "VOLUME": None, "LENGTH": None, "HEIGHT": None}
+
+    found = False
+
     for rel in getattr(e, "IsDefinedBy", []) or []:
         if not rel or not rel.is_a("IfcRelDefinesByProperties"):
             continue
+
         pset = rel.RelatingPropertyDefinition
         if not pset or not pset.is_a("IfcElementQuantity"):
             continue
+
+        found = True  # We found at least one QTO
+
         for it in getattr(pset, "Quantities", []) or []:
             if it.is_a("IfcQuantityVolume"):
                 q["VOLUME"] = float(getattr(it, "VolumeValue", 0.0) or 0.0)
@@ -176,94 +164,179 @@ def _get_base_quantities(e):
                 q["AREA"] = float(getattr(it, "AreaValue", 0.0) or 0.0)
             elif it.is_a("IfcQuantityLength"):
                 q["LENGTH"] = float(getattr(it, "LengthValue", 0.0) or 0.0)
-                # Se la quantità si chiama "Height", salva anche come HEIGHT
                 if getattr(it, "Name", "").lower() == "height":
                     q["HEIGHT"] = float(getattr(it, "LengthValue", 0.0) or 0.0)
+
+    if not found:
+        print(f"[WARNING] IfcElementQuantity mancante per {e.GlobalId} ({e.is_a()})")
+
     return q
 
 # Normalize unit strings for comparison
 def _norm_unit(u: Optional[str]) -> str:
+    """Normalize unit strings from pricelist, accounting for many variants."""
     if not u:
         return "-"
+
     s = str(u).strip().lower()
-    # Map Danish/variants
-    if s in {"m³", "m^3", "cubicmeter"}:
-        return "m3"
-    if s in {"m²", "m^2"}:
-        return "m2"
-    if s in {"lm", "lbm", "m1"}:
+
+    # ----- LENGTH -----
+    if s in {"m", "lm", "lbm", "ml", "meter", "metre", "m1"}:
         return "m"
+
+    # ----- AREA -----
+    if s in {"m2", "m²", "sqm", "mq", "m^2"}:
+        return "m2"
+
+    # ----- VOLUME -----
+    if s in {"m3", "m³", "mc", "cubicmeter", "m^3", "cbm"}:
+        return "m3"
+
+    # ----- COUNT / PIECES -----
+    if s in {"pcs", "pz", "nr", "ud", "unit", "piece"}:
+        return "count"
+
+    # ----- MASS -----
+    if s in {"kg", "kilogram"}:
+        return "kg"
+    if s in {"g", "gram"}:
+        return "g"
+    if s in {"t", "ton", "tonne"}:
+        return "ton"
+
+    # ----- TIME -----
+    if s in {"h", "hr", "hour", "ore"}:
+        return "hour"
+
+    # Height dimension (rare)
+    if s in {"h", "height"}:
+        return "height"
+
     return s
 
 def get_project_units(model):
     """Return a dict with the project's units for LENGTH, AREA, VOLUME."""
-    units = ifcopenshell.api.unit.get_units(model)
+    import ifcopenshell.util.unit as unit_util
+    
     unit_map = {}
-    for u in units:
-        if hasattr(u, "UnitType"):
-            if u.UnitType == "LENGTHUNIT":
-                unit_map["LENGTH"] = getattr(u, "Prefix", "") + u.Name if hasattr(u, "Prefix") else u.Name
-            elif u.UnitType == "AREAUNIT":
-                unit_map["AREA"] = getattr(u, "Prefix", "") + u.Name if hasattr(u, "Prefix") else u.Name
-            elif u.UnitType == "VOLUMEUNIT":
-                unit_map["VOLUME"] = getattr(u, "Prefix", "") + u.Name if hasattr(u, "Prefix") else u.Name
+    
+    try:
+        # Get unit for each type using official API
+        length_unit = unit_util.get_project_unit(model, "LENGTHUNIT")
+        area_unit = unit_util.get_project_unit(model, "AREAUNIT")
+        volume_unit = unit_util.get_project_unit(model, "VOLUMEUNIT")
+        
+        # Build unit name strings
+        if length_unit:
+            prefix = getattr(length_unit, "Prefix", None)
+            name = getattr(length_unit, "Name", "METRE")
+            unit_map["LENGTH"] = f"{prefix}{name}".lower() if prefix else name.lower()
+            unit_map["HEIGHT"] = unit_map["LENGTH"]  # Height uses same as length
+        
+        if area_unit:
+            prefix = getattr(area_unit, "Prefix", None)
+            name = getattr(area_unit, "Name", "SQUARE_METRE")
+            unit_map["AREA"] = f"{prefix}{name}".lower() if prefix else name.lower()
+        
+        if volume_unit:
+            prefix = getattr(volume_unit, "Prefix", None)
+            name = getattr(volume_unit, "Name", "CUBIC_METRE")
+            unit_map["VOLUME"] = f"{prefix}{name}".lower() if prefix else name.lower()
+            
+    except Exception as e:
+        print(f"[WARNING] Could not read project units: {e}")
+    
     return unit_map
 
 # Get quantity for element based on unit
 def get_quantity_for_unit(e, unit: str, model=None) -> Optional[float]:
     """
-    Compute element quantity according to unit, converting if necessary.
-    Requires 'model' argument to detect source units.
+    Compute element quantity according to the pricelist unit,
+    converting if necessary based on model project units.
     """
     u = _norm_unit(unit)
+
     if u in {"-", ""}:
         return 1.0
+
     q = _get_base_quantities(e)
 
-    # Default: assume model units are meters
+    # Default project units
     source_units = {"LENGTH": "m", "AREA": "m2", "VOLUME": "m3", "HEIGHT": "m"}
+
+    # Detect IFC schema project units
     if model is not None:
         detected = get_project_units(model)
         for k in detected:
-            # Normalize to m, m2, m3
-            if detected[k].lower().startswith("milli"):
-                source_units[k] = "mm" if k == "LENGTH" or k == "HEIGHT" else ("mm2" if k == "AREA" else "mm3")
-            elif detected[k].lower().startswith("centi"):
-                source_units[k] = "cm" if k == "LENGTH" or k == "HEIGHT" else ("cm2" if k == "AREA" else "cm3")
-            elif detected[k].lower().startswith("meter"):
-                source_units[k] = "m" if k == "LENGTH" or k == "HEIGHT" else ("m2" if k == "AREA" else "m3")
+            unit_name = detected[k].lower()
+            
+            # Check for millimeters
+            if "milli" in unit_name or unit_name.startswith("mm"):
+                source_units[k] = "mm" if k in {"LENGTH", "HEIGHT"} else ("mm2" if k == "AREA" else "mm3")
+            # Check for centimeters
+            elif "centi" in unit_name or unit_name.startswith("cm"):
+                source_units[k] = "cm" if k in {"LENGTH", "HEIGHT"} else ("cm2" if k == "AREA" else "cm3")
+            # Check for meters
+            elif "metre" in unit_name or unit_name.startswith("m"):
+                source_units[k] = "m" if k in {"LENGTH", "HEIGHT"} else ("m2" if k == "AREA" else "m3")
 
     # Conversion factors
     unit_factors = {
         ("mm", "m"): 0.001,
         ("cm", "m"): 0.01,
-        ("m", "m"): 1.0,
-        ("mm2", "m2"): 0.000001,
-        ("cm2", "m2"): 0.0001,
-        ("m2", "m2"): 1.0,
-        ("mm3", "m3"): 0.000000001,
-        ("cm3", "m3"): 0.000001,
-        ("m3", "m3"): 1.0,
+        ("m",  "m"): 1.0,
+
+        ("mm2", "m2"): 1e-6,
+        ("cm2", "m2"): 1e-4,
+        ("m2",  "m2"): 1.0,
+
+        ("mm3", "m3"): 1e-9,
+        ("cm3", "m3"): 1e-6,
+        ("m3",  "m3"): 1.0,
     }
 
+    # ----- LENGTH -----
     if u == "m":
         val = q["LENGTH"]
         factor = unit_factors.get((source_units["LENGTH"], "m"), 1.0)
         return val * factor if val is not None else None
+
+    # ----- AREA -----
     if u == "m2":
         val = q["AREA"]
         factor = unit_factors.get((source_units["AREA"], "m2"), 1.0)
         return val * factor if val is not None else None
+
+    # ----- VOLUME -----
     if u == "m3":
         val = q["VOLUME"]
         factor = unit_factors.get((source_units["VOLUME"], "m3"), 1.0)
         return val * factor if val is not None else None
+
+    # ----- HEIGHT -----
     if u == "height":
         val = q["HEIGHT"]
         factor = unit_factors.get((source_units["HEIGHT"], "m"), 1.0)
         return val * factor if val is not None else None
 
-    return 1.0
+    # ----- COUNT -----
+    if u == "count":
+        return 1.0  # each element counts as 1
+
+    # ----- MASS -----
+    if u == "kg":
+        print("[WARNING] Quantity in kg not available from IfcElementQuantity")
+        return None
+    if u == "g":
+        print("[WARNING] Quantity in g not available from IfcElementQuantity")
+        return None
+    if u == "ton":
+        print("[WARNING] Quantity in ton not available from IfcElementQuantity")
+        return None
+
+    # Unknown unit
+    print(f"[WARNING] Unit not recognized: '{unit}' normalized as '{u}'")
+    return None
 
 # Collect elements by specific IFC classes or all IfcElement if empty.
 def collect_candidates_by_classes(model, ifc_classes: Tuple[str, ...]) -> List[object]:

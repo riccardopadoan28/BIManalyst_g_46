@@ -117,7 +117,6 @@ def import_price_list_as_cost_schedule_from_csv(
 
     return schedule, code_to_item
 
-
 def assign_elements_to_cost_items_by_type_name_from_csv(
     model,
     csv_path: str,

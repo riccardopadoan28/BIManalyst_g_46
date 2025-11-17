@@ -10,6 +10,7 @@ import os
 import sys
 import re
 from pathlib import Path
+from xml.parsers.expat import model
 import ifcopenshell
 
 from helper.helper_cost import assign_elements_to_cost_items_by_type_name_from_csv
@@ -19,6 +20,7 @@ from helper.helper_write import (
     write_qto_types_no_cost_totals,
     write_boq_report_totals,
 )
+from helper.helper_JSON import output_to_json
 
 
 def main():
@@ -67,6 +69,8 @@ def main():
     model.write(output_ifc_path)
     print(f"Updated IFC written to: {os.path.abspath(output_ifc_path)}")
 
+    # Generate JSON output
+    json_path = output_to_json(model)
 
 if __name__ == "__main__":
     main()
