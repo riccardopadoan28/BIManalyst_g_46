@@ -1,0 +1,20 @@
+Identification Code;Name;Ifc Match;IfcCostValue;Unit
+04.10.82,01;Betonbjaelke;IfcBeam;4056,05;m3
+04.22.33,01;15 mm Promatect-200 plade, HEB 160;IfcBeam;263,61;lbm
+04.22.33,02;15 mm Promatect-200 plade, HEB 200;IfcBeam;313,67;lbm
+04.22.33,01;15 mm Promatect-200 plade, HEB 160;IfcColumn;263,61;lbm
+04.22.33,02;15 mm Promatect-200 plade, HEB 200;IfcColumn;313,67;lbm
+04.10.80,01;Betonsï¿½jle 200 x 200 mm, ikke synlig flade;IfcColumn;4677,61;m3
+04.10.80,02;Betonsï¿½jle 300 x 300 mm, ikke synlig flade;IfcColumn;4252,12;m3
+04.10.80,03;Betonsï¿½jle 400 x 400 mm, ikke synlig flade;IfcColumn;4035,13;m3
+04.10.80,04;Betonsï¿½jle 500 x 500 mm, ikke synlig flade;IfcColumn;3903,01;m3
+04.10.80,05;Betonsï¿½jle 200 x 200 mm, synlig overflade;IfcColumn;5290,99;m3
+04.10.80,06;Betonsï¿½jle 300 x 300 mm, synlig overflade;IfcColumn;4669,85;m3
+04.10.80,07;Betonsï¿½jle 400 x 400 mm, synlig overflade;IfcColumn;4353,79;m3
+04.10.80,08;Betonsï¿½jle 500 x 500 mm, synlig overflade;IfcColumn;4161,19;m3
+04.50.12,01;Pletspartling af betongulv;IfcSlab;25,96;m2
+04.56.54,01;Vægge, MBK 2122, betonelementer;IfcWall;75,62;m2
+04.56.54,02;Vægge, MBK 2622, betonelementer;IfcWall;106,57;m2
+04.56.54,03;Vægge, MBK 2712, betonelementer;IfcWall;63,43;m2
+04.56.54,04;Vægge, MBK 2412, betonelementer;IfcWall;134,32;m2
+04.56.54,05;Vægge, MBK 2912, betonelementer;IfcWall;198,99;m2

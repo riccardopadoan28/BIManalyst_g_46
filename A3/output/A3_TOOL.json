@@ -1,0 +1,69 @@
+{
+  "document": {
+    "title": "BILL OF QUANTITIES (BOQ) – TOTALS ONLY",
+    "date": "2025-11-17",
+    "source": "IFC Model Analysis"
+  },
+  "items": [
+    {
+      "itemCode": "04.10.82,01",
+      "description": "Betonbjaelke",
+      "unit": "m3",
+      "quantity": 102.5551,
+      "unitCost": 4056.05,
+      "totalAmount": 415968.51
+    },
+    {
+      "itemCode": "04.22.33,02",
+      "description": "15 mm Promatect-200 plade, HEB 200",
+      "unit": "lbm",
+      "quantity": 728.617,
+      "unitCost": 313.67,
+      "totalAmount": 228545.29
+    },
+    {
+      "itemCode": "04.22.33,01",
+      "description": "15 mm Promatect-200 plade, HEB 160",
+      "unit": "lbm",
+      "quantity": 427.536,
+      "unitCost": 263.61,
+      "totalAmount": 112702.76
+    },
+    {
+      "itemCode": "04.10.80,05",
+      "description": "Betonsï¿½jle 200 x 200 mm, synlig overflade",
+      "unit": "m3",
+      "quantity": 2.0466,
+      "unitCost": 5290.99,
+      "totalAmount": 10828.73
+    },
+    {
+      "itemCode": "04.50.12,01",
+      "description": "Pletspartling af betongulv",
+      "unit": "m2",
+      "quantity": 313609.5695,
+      "unitCost": 25.96,
+      "totalAmount": 8141304.42
+    },
+    {
+      "itemCode": "04.56.54,01",
+      "description": "Vægge, MBK 2122, betonelementer",
+      "unit": "m2",
+      "quantity": 3592.7349,
+      "unitCost": 75.62,
+      "totalAmount": 271682.61
+    },
+    {
+      "itemCode": "04.56.54,04",
+      "description": "Vægge, MBK 2412, betonelementer",
+      "unit": "m2",
+      "quantity": 424.1786,
+      "unitCost": 134.32,
+      "totalAmount": 56975.67
+    }
+  ],
+  "summary": {
+    "total": 9238008.01,
+    "currency": "DKK"
+  }
+}

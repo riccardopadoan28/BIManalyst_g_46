@@ -1,0 +1,43 @@
+QUANTITY TAKE OFF (QTO) – TOTALS ONLY
+Date: 2025-11-17
+Total Elements: 1008
+
+#  | IfcTypeClass      | Type Name                                       | Count
+───┼───────────────────┼─────────────────────────────────────────────────┼──────
+1  | IfcBeamType       | HEB Bjælke_N:HE260B                             | 133  
+2  | IfcBeamType       | HEB Bjælke_N:HE300B                             | 14   
+3  | IfcBeamType       | HEB Bjælke_N:HE360B                             | 8    
+4  | IfcBeamType       | HEB Bjælke_N:HE400B                             | 52   
+5  | IfcBeamType       | HEB Bjælke_N:HE450B                             | 4    
+6  | IfcBeamType       | HEB Bjælke_N:HE600B                             | 2    
+7  | IfcBeamType       | HEB Bjælke_N:HE700B                             | 32   
+8  | IfcBeamType       | Rektangulær bjælke (RB)_N:RB120/340             | 2    
+9  | IfcBeamType       | Rektangulær bjælke (RB)_N:RB200/500             | 5    
+10 | IfcBeamType       | Rektangulær bjælke (RB)_N:RB200/520             | 15   
+11 | IfcBeamType       | Rektangulær bjælke (RB)_N:RB200/600             | 4    
+12 | IfcBeamType       | Rektangulær bjælke (RB)_N:RB250/520             | 16   
+13 | IfcBeamType       | Rektangulær bjælke (RB)_N:RB400/500             | 14   
+14 | IfcBeamType       | Rektangulær bjælke (RB)_N:RB400/800             | 8    
+15 | IfcColumnType     | HEB Søjle_N:HE120B                              | 55   
+16 | IfcColumnType     | HEB Søjle_N:HE160B                              | 113  
+17 | IfcColumnType     | HEB Søjle_N:HE180B                              | 29   
+18 | IfcColumnType     | HEB Søjle_N:HE200B                              | 38   
+19 | IfcColumnType     | Søjle pladsstøbt Rektangulær (SBP)_N:SBP200/200 | 87   
+20 | IfcColumnType     | Søjle pladsstøbt Rektangulær (SBP)_N:SBP200/480 | 23   
+21 | IfcColumnType     | Søjle pladsstøbt Rektangulær (SBP)_N:SBP240/240 | 12   
+22 | IfcColumnType     | Søjle pladsstøbt Rektangulær (SBP)_N:SBP240/480 | 2    
+23 | IfcColumnType     | Søjle pladsstøbt Rektangulær (SBP)_N:SBP250/250 | 13   
+24 | IfcColumnType     | Søjle pladsstøbt Rektangulær (SBP)_N:SBP300/200 | 24   
+25 | IfcColumnType     | Søjle pladsstøbt Rektangulær (SBP)_N:SBP360/200 | 20   
+26 | IfcColumnType     | Søjle pladsstøbt Rektangulær (SBP)_N:SBP360/230 | 1    
+27 | IfcSlabType       | Floor:Floor-Upper_120mmConc-CorusComFlor51      | 38   
+28 | IfcSlabType       | Floor:Floor-Upper_160mmConc-CorusComFlor51      | 1    
+29 | IfcSlabType       | Floor:Floor-Upper_180mmHollowCore               | 166  
+30 | IfcSlabType       | Foundation Slab:Standard                        | 12   
+31 | IfcWallType       | Basic Wall:Wall-Fnd_120Con_Footing              | 1    
+32 | IfcWallType       | Basic Wall:Wall-Fnd_240Con_Footing              | 2    
+33 | IfcWallType       | Basic Wall:Wall-Fnd_300Con_Footing              | 1    
+34 | IfcWallType       | Basic Wall:Wall_200Concrete                     | 59   
+   | IfcOpeningElement | (untyped)                                       | 2    
+
+TOTAL COUNT = 1008
