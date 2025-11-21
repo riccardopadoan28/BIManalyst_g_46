@@ -23,8 +23,8 @@ In order to properly run the application, the .ifc model should requires this cr
 # Workflow of the Application
 
 1️⃣ **Load IFC Model**  
-   - The tool reads the input .ifc file from an absolute path.
-   - Extracts all building elements.
+   - The tool reads the input .ifc file from an absolute path using `ifcopenshell.open()`.
+   - Extracts all building elements using `ifc_file.by_type()`.
 
 2️⃣ **Load Price List CSV**  
    - Reads the  file containing cost data.
@@ -39,7 +39,7 @@ In order to properly run the application, the .ifc model should requires this cr
 3️⃣ **Match Elements to Cost Items**  
    - For each IfcElement in the model:
      - Look up matching .csv rows by element class through IfcMatch column.
-     - Use fuzzy string matching on the element's Name to find the best price list match.
+     - Use fuzzy string matching on the element's Name to find the best price list match (using Python's `difflib.SequenceMatcher`)
      - Extract element properties using `ifcopenshell.util.element.get_psets()` to access property sets.
      - Extract quantities using `ifcopenshell.util.element.get_quantity()` for length, area, or volume.
 
@@ -59,7 +59,6 @@ In order to properly run the application, the .ifc model should requires this cr
    - The output file is saved in the `output` folder with `_cost` appended to the filename (e.g., `project_cost.ifc`).
    - The original IFC file is never modified.
 
-
 # Instructions to run the tool
 
 **Usage:**
@@ -70,3 +69,15 @@ In order to properly run the application, the .ifc model should requires this cr
 2. Enter the path to your IFC model when prompted (or pass it as a command-line argument).
 3. Enter the path to your price list CSV file when prompted.
 4. The tool will process the model, assign cost data, generate reports, and save the outputs in the `output` folder.
+
+
+# Reference
+
+**IfcOpenshell:**
+- [IfcOpenShell Util](https://docs.ifcopenshell.org/autoapi/ifcopenshell/util/index.html)
+- [IfcOpenShell Cost API](https://docs.ifcopenshell.org/autoapi/ifcopenshell/api/cost/index.html)
+
+**IfcOpenshell:**
+- [IfcCostSchedule](https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCostSchedule.htm)
+- [IfcCostItem](https://ifc43-docs.standards.buildingsmart.org/IFC/RELEASE/IFC4x3/HTML/lexical/IfcCostItem.htm)
+- [IfcCostValue](https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCostValue.htm)
