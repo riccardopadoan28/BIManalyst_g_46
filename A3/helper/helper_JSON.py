@@ -1,34 +1,35 @@
+"""
+Creates a JSON file that reflects the BOQ_total.txt structure.
+Aggregates data from IfcCostItem without level breakdown.
+"""
 import json
 import os
 from datetime import datetime
 from collections import defaultdict
 
-def output_to_json(model, output_dir="output", filename="A3_TOOL.json"):
-    """
-    Creates a JSON file that reflects the BOQ_total.txt structure.
-    Aggregates data from IfcCostItem without level breakdown.
-    """
-    # Import necessary functions from other helpers
-    from .helper_read import read_price_list
-    from .helper_get import get_quantity_for_unit
-    
-    # Create output folder
-    os.makedirs(output_dir, exist_ok=True)
-    out_path = os.path.join(output_dir, filename)
+from .helper_read import read_price_list
+from .helper_get import get_quantity_for_unit
 
-    # Map units from CSV (as in write_boq_report_totals)
-    try:
-        repo_root = os.path.dirname(os.path.dirname(__file__))
-        csv_path = os.path.join(repo_root, "input", "price_list.csv")
-        rows_csv = read_price_list(csv_path, delimiter=";", encoding="cp1252")
-        csv_unit_map = {}
-        for r in rows_csv:
-            ident = r.get("Identification Code") or r.get("Identification") or ""
-            unit = r.get("Unit") or r.get("Measurement Unit") or ""
-            if ident:
-                csv_unit_map[ident] = unit
-    except Exception:
-        csv_unit_map = {}
+def output_to_json(model, csv_path=None, output_dir="output"):
+
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Define output path
+    out_path = os.path.join(output_dir, "A3_TOOL.json")
+
+    # CSV units map
+    csv_unit_map = {}
+    if csv_path and os.path.isfile(csv_path):
+        try:
+            from .helper_read import read_price_list
+            rows_csv = read_price_list(csv_path, delimiter=";", encoding="cp1252")
+            for r in rows_csv:
+                ident = r.get("Identification Code") or r.get("Identification") or ""
+                unit = r.get("Unit") or r.get("Measurement Unit") or ""
+                if ident:
+                    csv_unit_map[ident] = unit
+        except Exception:
+            pass
 
     # Map cost item -> elements
     item_map = defaultdict(list)

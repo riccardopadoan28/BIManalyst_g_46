@@ -2,6 +2,20 @@
 Reporting helpers:
 - Build a summarized cost estimation (grouping rows)
 - Write a simple CSV-like text report
+
+Functions:
+- _format_number_eu: Format numbers with EU style (1.234,56)
+- _best_match: Fuzzy pick the best CSV row for an element by comparing names
+- build_cost_estimation_summary: Aggregate quantities and costs by (ident, name, unit, unit_cost)
+- write_cost_estimation_report: Write a simple text report; return (path, grand_total)
+- _get_element_type_obj: Get the IfcTypeObject related to an element
+- _extract_unit_cost_from_costitem: Extract unit cost from IfcCostItem's first CostValue
+- _fmt_table: Format data as aligned text table with headers and separator lines
+- write_qto_types_no_cost: Write QTO report grouped by IfcElementType and Level (no costs)
+- write_qto_types_no_cost_totals: Write QTO total-only report (count per type, no level split)
+- write_boq_report: Write BOQ report with lines split by Cost Item and Level
+- write_boq_report_totals: Write BOQ total-only report (one line per Cost Item, no level split)
+- _get_level_name: Return the IfcBuildingStorey name containing the element
 """
 
 import os
@@ -13,15 +27,17 @@ import datetime
 from .helper_read import read_price_list, parse_decimal_eu
 from .helper_get import get_quantity_for_unit
 
-
+# Format numbers with EU style (1.234,56).
+# Converts standard float format to European notation with dot as thousands separator
+# and comma as decimal separator.
 def _format_number_eu(value: float, decimals: int = 2) -> str:
     """Format 1234.56 as 1.234,56 (EU style)."""
     s = f"{value:,.{decimals}f}"
     return s.replace(",", "X").replace(".", ",").replace("X", ".")
 
-
+# Fuzzy pick the best CSV row for an element by comparing names.
+# Uses difflib.SequenceMatcher for similarity scoring.
 def _best_match(element_name: str, candidates: List[Dict[str, str]], name_col: str) -> Dict[str, str] | None:
-    """Fuzzy pick the best row for an element by comparing names."""
     if not candidates:
         return None
     base = (element_name or "").strip().lower()
@@ -32,7 +48,8 @@ def _best_match(element_name: str, candidates: List[Dict[str, str]], name_col: s
     scores.sort(key=lambda x: x[0], reverse=True)
     return scores[0][1] if scores else None
 
-
+# Aggregate quantities and costs by (ident, name, unit, unit_cost).
+# Groups multiple elements with same price list item and sums quantities.
 def build_cost_estimation_summary(
     ifc_file,
     csv_path: str,
@@ -45,7 +62,6 @@ def build_cost_estimation_summary(
     delimiter: str = ";",
     encoding: str = "cp1252",
 ) -> Dict[str, object]:
-    """Aggregate quantities and costs by (ident, name, unit, unit_cost)."""
     rows = read_price_list(csv_path, delimiter=delimiter, encoding=encoding)
 
     # Index rows by IFC class for quick lookup
@@ -118,7 +134,8 @@ def build_cost_estimation_summary(
     items.sort(key=lambda x: (x["ident"], x["name"]))
     return {"items": items, "grand_total": grand_total, "scanned": scanned, "matched": matched}
 
-
+# Write a simple text report with cost estimation; return (path, grand_total).
+# Creates semicolon-separated text file with aggregated cost data.
 def write_cost_estimation_report(
     ifc_file,
     csv_path: str,
@@ -170,9 +187,9 @@ def write_cost_estimation_report(
 
     return out_path, grand_total
 
-
+# Get the IfcTypeObject related to an element.
+# Prefers IsTypedBy relationship, falls back to IsDefinedBy.
 def _get_element_type_obj(e):
-    # Prefer IsTypedBy; fallback to IsDefinedBy
     if getattr(e, "IsTypedBy", None):
         for rel in e.IsTypedBy:
             if rel and rel.is_a("IfcRelDefinesByType") and rel.RelatingType:
@@ -182,9 +199,9 @@ def _get_element_type_obj(e):
             return rel.RelatingType
     return None
 
-
+# Extract unit cost from IfcCostItem's first CostValue.
+# Handles various ifcopenshell wrapped value formats.
 def _extract_unit_cost_from_costitem(ci):
-    # Take the first CostValue.AppliedValue as float
     vals = getattr(ci, "CostValues", None) or []
     if not vals:
         return None
@@ -206,9 +223,9 @@ def _extract_unit_cost_from_costitem(ci):
                 return None
     return None
 
-
+# Format data as aligned text table with headers and separator lines.
+# Creates human-readable table with automatic column width calculation.
 def _fmt_table(headers, rows, max_col_width=48):
-    # Auto column widths
     widths = [len(h) for h in headers]
     for r in rows:
         for i, cell in enumerate(r):
@@ -221,13 +238,9 @@ def _fmt_table(headers, rows, max_col_width=48):
         out.append(" | ".join(f"{str(cell):<{widths[i]}}" for i, cell in enumerate(r)))
     return out
 
-
+# Write QTO report grouped by IfcElementType and Level (no costs).
+# Table shows subtotals per type and grand total.
 def write_qto_types_no_cost(model, output_dir="output", filename="QTO.txt"):
-    """
-    QTO (tender friendly):
-    Table grouped by IfcElementType (Class + Type.Name) and Level.
-    No costs. Shows subtotals per type and Grand Total.
-    """
     os.makedirs(output_dir, exist_ok=True)
     out_path = os.path.join(output_dir, filename)
 
@@ -293,9 +306,9 @@ def write_qto_types_no_cost(model, output_dir="output", filename="QTO.txt"):
         f.write("\n".join(lines))
     return out_path
 
-
+# Write QTO total-only report (count per type, no level split).
+# Provides aggregate counts per IfcTypeObject without level breakdown.
 def write_qto_types_no_cost_totals(model, output_dir="output", filename="QTO_total.txt"):
-    """QTO total-only: count per Ifc...Type (no level split)."""
     os.makedirs(output_dir, exist_ok=True)
     out_path = os.path.join(output_dir, filename)
 
@@ -348,31 +361,26 @@ def write_qto_types_no_cost_totals(model, output_dir="output", filename="QTO_tot
         f.write("\n".join(lines))
     return out_path
 
-
-def write_boq_report(model, output_dir="output", filename="BOQ.txt") -> str:
-    """
-    BOQ (tender friendly):
-    Lines split by Cost Item (Identification) AND Level.
-    Columns: Item, Description, Unit, Level, Qty, Rate, Amount.
-    Provides per-item total and grand total.
-    """
+# Write BOQ report with lines split by Cost Item and Level.
+# Provides per-item total and grand total with level breakdown.
+# Columns: Item, Description, Unit, Level, Qty, Rate, Amount.
+def write_boq_report(model, output_dir="output", filename="BOQ.txt", csv_path=None) -> str:
     os.makedirs(output_dir, exist_ok=True)
     out_path = os.path.join(output_dir, filename)
 
     # CSV units
-    try:
-        from .helper_read import read_price_list
-        repo_root = os.path.dirname(os.path.dirname(__file__))
-        csv_path = os.path.join(repo_root, "input", "price_list.csv")
-        rows_csv = read_price_list(csv_path, delimiter=";", encoding="cp1252")
-        csv_unit_map = {}
-        for r in rows_csv:
-            ident = r.get("Identification Code") or r.get("Identification") or ""
-            unit = r.get("Unit") or r.get("Measurement Unit") or ""
-            if ident:
-                csv_unit_map[ident] = unit
-    except Exception:
-        csv_unit_map = {}
+    csv_unit_map = {}
+    if csv_path and os.path.isfile(csv_path):
+        try:
+            from .helper_read import read_price_list
+            rows_csv = read_price_list(csv_path, delimiter=";", encoding="cp1252")
+            for r in rows_csv:
+                ident = r.get("Identification Code") or r.get("Identification") or ""
+                unit = r.get("Unit") or r.get("Measurement Unit") or ""
+                if ident:
+                    csv_unit_map[ident] = unit
+        except Exception:
+            pass
 
     # Assignments
     item_map = defaultdict(list)
@@ -459,26 +467,25 @@ def write_boq_report(model, output_dir="output", filename="BOQ.txt") -> str:
         f.write("\n".join(lines))
     return out_path
 
-
-def write_boq_report_totals(model, output_dir="output", filename="BOQ_total.txt"):
-    """BOQ total-only: one line per Cost Item with total Quantity and Amount (no level split)."""
+# Write BOQ total-only report (one line per Cost Item, no level split).
+# Provides single aggregate line per cost item with total quantity and amount.
+def write_boq_report_totals(model, output_dir="output", filename="BOQ_total.txt", csv_path=None):
     os.makedirs(output_dir, exist_ok=True)
     out_path = os.path.join(output_dir, filename)
 
     # CSV units map
-    try:
-        from .helper_read import read_price_list
-        repo_root = os.path.dirname(os.path.dirname(__file__))
-        csv_path = os.path.join(repo_root, "input", "price_list.csv")
-        rows_csv = read_price_list(csv_path, delimiter=";", encoding="cp1252")
-        csv_unit_map = {}
-        for r in rows_csv:
-            ident = r.get("Identification Code") or r.get("Identification") or ""
-            unit = r.get("Unit") or r.get("Measurement Unit") or ""
-            if ident:
-                csv_unit_map[ident] = unit
-    except Exception:
-        csv_unit_map = {}
+    csv_unit_map = {}
+    if csv_path and os.path.isfile(csv_path):
+        try:
+            from .helper_read import read_price_list
+            rows_csv = read_price_list(csv_path, delimiter=";", encoding="cp1252")
+            for r in rows_csv:
+                ident = r.get("Identification Code") or r.get("Identification") or ""
+                unit = r.get("Unit") or r.get("Measurement Unit") or ""
+                if ident:
+                    csv_unit_map[ident] = unit
+        except Exception:
+            pass
 
     # Assignments: cost item -> elements
     item_map = defaultdict(list)
@@ -554,10 +561,9 @@ def write_boq_report_totals(model, output_dir="output", filename="BOQ_total.txt"
         f.write("\n".join(lines))
     return out_path
 
-
+# Return the IfcBuildingStorey name containing the element, else '(no level)'.
+# Traverses spatial containment hierarchy to find building storey.
 def _get_level_name(e) -> str:
-    """Return the IfcBuildingStorey name containing the element, else '(no level)'."""
-    # Preferred: ifcopenshell util
     try:
         import ifcopenshell.util.element as uel
         container = uel.get_container(e)

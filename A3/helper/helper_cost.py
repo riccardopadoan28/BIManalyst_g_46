@@ -4,11 +4,18 @@ Cost helpers:
 - Create/find IfcCostItem and add IfcCostValue
 - Import price list from CSV
 - Assign products to cost items (IfcRelAssignsToControl)
+
+Functions:
+- ensure_cost_schedule: Find or create an IfcCostSchedule by name, ensuring only one exists
+- _schedule_children_cost_items: Collect direct child IfcCostItem nested under schedule
+- _find_item_by_name_or_identification: Find item by Name or Identification among schedule children
+- add_or_get_cost_item: Find an IfcCostItem by name/identification or create one under the schedule
+- add_unit_cost_value: Create an IfcCostValue as a child of a cost item with AppliedValue
+- _best_match: Fuzzy match element name to the best CSV row on the given column
+- import_price_list_as_cost_schedule_from_csv: Create schedule and one IfcCostItem per CSV row with unit costs
+- assign_elements_to_cost_items_by_type_name_from_csv: Assign IfcElements to cost items by fuzzy matching type and name from CSV
 """
 
-import csv
-import os
-import re
 import difflib
 from collections import defaultdict
 from typing import Dict, List, Tuple
@@ -28,7 +35,7 @@ def ensure_cost_schedule(model, name: str = "Price List", predefined_type: str =
             return s
     return ifc_api.run("cost.add_cost_schedule", model, name=name, predefined_type=predefined_type)
 
-# Collect direct child IfcCostItem nested under schedule. Searching existing items.
+# Collect direct child IfcCostItem nested under schedule.
 def _schedule_children_cost_items(schedule) -> List[object]:
     children: List[object] = []
     for rel in getattr(schedule, "IsNestedBy", []) or []:
@@ -37,7 +44,7 @@ def _schedule_children_cost_items(schedule) -> List[object]:
                 children.append(o)
     return children
 
-# Find item by Name or Identification among schedule children. Avoid duplicate cost items
+# Find item by Name or Identification among schedule children to avoid duplicate cost items.
 def _find_item_by_name_or_identification(schedule, name: str, identification: str | None):
     for item in _schedule_children_cost_items(schedule):
         if (getattr(item, "Name", None) or "") == name:
@@ -46,7 +53,7 @@ def _find_item_by_name_or_identification(schedule, name: str, identification: st
             return item
     return None
 
-# Find an IfcCostItem (by name/ident) or create one under the schedule.
+# Create an IfcCostValue as a child of a cost item, set AppliedValue and store label in Name.
 def add_or_get_cost_item(model, cost_schedule, name, identification=None, description=None):
     for ci in model.by_type("IfcCostItem"):
         if ci.Name == name and (identification is None or getattr(ci, "Identification", None) == identification):
@@ -81,7 +88,7 @@ def _best_match(element_name: str, candidates: List[Dict[str, str]], name_col: s
     scores.sort(key=lambda x: x[0], reverse=True)
     return scores[0][1] if scores else None
 
-# Create schedule and one IfcCostItem (+ unit cost) per CSV row; return (schedule, code->item). importing price lists directly into IFC
+# Create schedule and one IfcCostItem (+ unit cost) per CSV row; return (schedule, code->item). Importing price lists directly into IFC.
 def import_price_list_as_cost_schedule_from_csv(
     model,
     csv_path: str,
@@ -117,6 +124,7 @@ def import_price_list_as_cost_schedule_from_csv(
 
     return schedule, code_to_item
 
+# Assign IfcElements to cost items by fuzzy matching type and name from CSV.
 def assign_elements_to_cost_items_by_type_name_from_csv(
     model,
     csv_path: str,
@@ -212,4 +220,3 @@ def assign_elements_to_cost_items_by_type_name_from_csv(
             assigned += 1
 
     return {"assigned": assigned, "skipped_no_candidates": skipped_no_candidates, "skipped_no_match": skipped_no_match}
-

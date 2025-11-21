@@ -2,6 +2,17 @@
 Model getters/quantity helpers:
 - List element types present in model
 - Access base quantities and derive quantities by unit
+
+Functions:
+- get_all_struct_elements: Writes for each IfcElement the related Type, instance counts, and totals to a text file
+- get_element_type_name: Get the type name of an element from its Type, PredefinedType, or Name
+- get_base_quantities: Get base quantities from element's QTO using ifcopenshell utilities
+- _get_base_quantities: Get base quantities from IfcElementQuantity (AREA, VOLUME, LENGTH, HEIGHT)
+- _norm_unit: Normalize unit strings for comparison, handling variants (m, m2, m3, count, etc.)
+- get_project_units: Return a dict with the project's units for LENGTH, AREA, VOLUME from IFC schema
+- get_quantity_for_unit: Compute element quantity according to pricelist unit with unit conversion
+- collect_candidates_by_classes: Collect elements by specific IFC classes or all IfcElement if empty
+- map_elements_to_price_rows_by_type_name: Map elements to CSV rows using type names, producing quantity and cost lines
 """
 from collections import defaultdict, Counter
 from typing import Dict, List, Tuple, Optional
@@ -11,7 +22,7 @@ import ifcopenshell.api
 
 from .helper_read import build_price_index_by_text, normalize_text, parse_decimal_eu
 
-# Writes: for each IfcElement (e.g. IfcBeam), the related Ifc...Type (e.g. IfcBeamType),
+# Writes for each IfcElement (e.g. IfcBeam) the related Ifc...Type (e.g. IfcBeamType),
 # number of instances linked to each Type, number of elements without Type, and totals.
 # Returns the list (type_name, count, None) for compatibility.
 def get_all_struct_elements(
@@ -120,7 +131,7 @@ def get_all_struct_elements(
     # Compatible return
     return [(b, base_counts[b], None) for b, _ in sorted_bases]
 
-# Get the type name of an element
+# Get the type name of an element from its Type, PredefinedType, or Name attribute.
 def get_element_type_name(element) -> str:
     import ifcopenshell.util
     t = ifcopenshell.util.element.get_type(element)
@@ -132,7 +143,8 @@ def get_element_type_name(element) -> str:
         return str(getattr(element, "Name"))
     return element.is_a()
 
-# Get best matching candidate from list by name similarity
+# Get base quantities from element's QTO using ifcopenshell utilities
+# #Returns dictionary with numeric quantity values.
 def get_base_quantities(element) -> Dict[str, float]:
     out = {}
     qto = ifc.util.element.get_qto(element)
@@ -141,7 +153,8 @@ def get_base_quantities(element) -> Dict[str, float]:
             out[k] = float(v)
     return out
 
-# Get base quantities from IfcElementQuantity: dict with keys AREA, VOLUME, LENGTH."""
+# Get base quantities from IfcElementQuantity: dict with keys AREA, VOLUME, LENGTH, HEIGHT.
+# Prints warning if no IfcElementQuantity found.
 def _get_base_quantities(e):
     q = {"AREA": None, "VOLUME": None, "LENGTH": None, "HEIGHT": None}
 
@@ -172,7 +185,8 @@ def _get_base_quantities(e):
 
     return q
 
-# Normalize unit strings for comparison
+# Normalize unit strings for comparison, handling many variants.
+# Converts common unit representations to standard form (m, m2, m3, count, etc.).
 def _norm_unit(u: Optional[str]) -> str:
     """Normalize unit strings from pricelist, accounting for many variants."""
     if not u:
@@ -214,6 +228,8 @@ def _norm_unit(u: Optional[str]) -> str:
 
     return s
 
+# Return a dict with the project's units for LENGTH, AREA, VOLUME from IFC schema.
+# Uses ifcopenshell.util.unit to detect project unit definitions.
 def get_project_units(model):
     """Return a dict with the project's units for LENGTH, AREA, VOLUME."""
     import ifcopenshell.util.unit as unit_util
@@ -248,7 +264,8 @@ def get_project_units(model):
     
     return unit_map
 
-# Get quantity for element based on unit
+# Compute element quantity according to pricelist unit with automatic unit conversion.
+# Converts from model units (mm, cm, m) to target unit based on IFC schema detection.
 def get_quantity_for_unit(e, unit: str, model=None) -> Optional[float]:
     """
     Compute element quantity according to the pricelist unit,
@@ -338,7 +355,7 @@ def get_quantity_for_unit(e, unit: str, model=None) -> Optional[float]:
     print(f"[WARNING] Unit not recognized: '{unit}' normalized as '{u}'")
     return None
 
-# Collect elements by specific IFC classes or all IfcElement if empty.
+# Collect elements by specific IFC classes or all IfcElement if tuple is empty.
 def collect_candidates_by_classes(model, ifc_classes: Tuple[str, ...]) -> List[object]:
     if not ifc_classes:
         return model.by_type("IfcElement")
@@ -348,6 +365,7 @@ def collect_candidates_by_classes(model, ifc_classes: Tuple[str, ...]) -> List[o
     return out
 
 # Map elements to CSV rows using type names, producing quantity and cost lines.
+# Auto-detects IFC classes present in model if not specified.
 def map_elements_to_price_rows_by_type_name(
     model,
     rows: List[Dict[str, str]],
