@@ -70,14 +70,13 @@ In order to properly run the application, the .ifc model should requires this cr
 3. Enter the path to your price list CSV file when prompted.
 4. The tool will process the model, assign cost data, generate reports, and save the outputs in the `output` folder.
 
-
 # Reference
 
-**IfcOpenshell:**
+**IfcOpenShell 0.8.4 Documentation:**
 - [IfcOpenShell Util](https://docs.ifcopenshell.org/autoapi/ifcopenshell/util/index.html)
 - [IfcOpenShell Cost API](https://docs.ifcopenshell.org/autoapi/ifcopenshell/api/cost/index.html)
 
-**IfcOpenshell:**
+**IFC4x3_ADD2 Documentation:**
 - [IfcCostSchedule](https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCostSchedule.htm)
 - [IfcCostItem](https://ifc43-docs.standards.buildingsmart.org/IFC/RELEASE/IFC4x3/HTML/lexical/IfcCostItem.htm)
 - [IfcCostValue](https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCostValue.htm)
