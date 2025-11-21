@@ -80,3 +80,7 @@ In order to properly run the application, the .ifc model should requires this cr
 - [IfcCostSchedule](https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCostSchedule.htm)
 - [IfcCostItem](https://ifc43-docs.standards.buildingsmart.org/IFC/RELEASE/IFC4x3/HTML/lexical/IfcCostItem.htm)
 - [IfcCostValue](https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCostValue.htm)
+
+# Process Diagram
+
+![BPMN Workflow Diagram](A3_G_46.svg)
