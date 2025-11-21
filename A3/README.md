@@ -1,92 +1,74 @@
-# BIManalyst — A3 README
+# Group BIManalyst_g_46: A3 Tool
 
 ## About the tool
+Group BIManalys_g_46 has developed a tool that perform a structural cost estimation, working on a given model starting from a given structural price list. 
+The tool:
+- Reads .ifc elements and their properties;
+- Matches elements to cost items from a CSV price list matching and assign `IfcCostSchedule`;
+- Assigns cost data to elements by creating `IfcCostItem` and `IfcCostValue` entities;
+- Generates total and detailed by level Quantity Take-Off (QTO) and Bill of Quantities (BOQ) reports in .txt file;
+- Saves an updated .ifc file with embedded cost information;
+- Saves a JSON file of the total BOQ;
 
-**Claim:**  
-BIManalyst addresses the challenge of late discovery of performance and coordination issues in building projects, which often leads to costly rework and delays. The tool aims to detect missing or inconsistent model information and provide actionable metrics early in the design process, allowing teams to prioritize fixes before detailed simulation or construction.
+# Advanced Building Design
 
-**Where the problem was found:**  
-This need was identified during the Use Case Analysis in A2, through stakeholder interviews, model audits, and common BIM QA findings. Frequent issues include incomplete model metadata, missing thermal zones, incorrect element types, inconsistent glazing data, and a lack of simple early-stage performance indicators.
+This tool can be useful after the structural early design stage is completed and as well to assess cost estimation analysis during the design process. It needs a structural ifc model to perform the calculation and it should be useful to PMs, BIM managers, BIM coordinators, quantity surveyors, cost controllers and to performe due diligence on the project. 
 
-## Description of the tool
+**Requirements for model and database:**
+In order to properly run the application, the .ifc model should requires this criteria:
+- All Elements QuantitySet have to be populated: QuantityLenght, QuantityArea, QuantityVolume;
+- Strong correlation between the name of the type in the .ifc model and the name in the price list;
+- The cost defined in the price list (Unit Cost) has to be the unitary cost.
 
-BIManalyst is a command-line Python utility that analyzes BIM models (preferably IFC files) to:
-- Check model completeness (rooms, levels, element types)
-- Extract quantities (floor area, volume, glazing area)
-- Flag basic performance risks (missing thermal zones, missing U-values, excessive glazing ratios)
-- Suggest next actions for each flagged issue
+# Workflow of the Application
 
-It uses the IfcOpenShell library to read geometry and properties, applies rule checks based on A2 findings, and generates human-readable and machine-readable reports.
+1️⃣ **Load IFC Model**  
+   - The tool reads the input .ifc file from an absolute path.
+   - Extracts all building elements.
 
-## Workflow of the Application
+2️⃣ **Load Price List CSV**  
+   - Reads the  file containing cost data.
+   - Groups rows by the "Ifc Match" column.
+   - Elements with empty class names are skipped.
 
-1️⃣ **Group CSV rows by IFC class**  
-   - Rows in the price list CSV are grouped by the "Ifc Match" column (e.g., "IfcWall", "IfcSlab").
-   - If the class is empty, the element is skipped.
+  ```bash
+      Identification Code | Name         | IfcMatch | IfcCostValue    | Unit |
+      04.10.82,01         | Betonbjaelke | IfcBeam  | 4056,05         | m3   |
+  ```
 
-2️⃣ **For each IfcElement in the model:**  
-   - Look up matching CSV rows by element class.
-   - Fuzzy-match by the element’s Name.
-   - Extract the Identification code.
-   - Create or reuse a cost item for that code.
-   - Add unit cost if necessary.
-   - Create an `IfcRelAssignsToControl` linking the element to the cost item.
-   - Uses the official IfcOpenShell API (`control.assign_control`), falling back to manual entity creation if the API is unavailable.
+3️⃣ **Match Elements to Cost Items**  
+   - For each IfcElement in the model:
+     - Look up matching .csv rows by element class through IfcMatch column.
+     - Use fuzzy string matching on the element's Name to find the best price list match.
+     - Extract element properties using `ifcopenshell.util.element.get_psets()` to access property sets.
+     - Extract quantities using `ifcopenshell.util.element.get_quantity()` for length, area, or volume.
 
-3️⃣ **Generate Reports**  
-   - Quantity Take-Off (QTO) and Bill of Quantities (BOQ) reports are created in the `output` folder.
+4️⃣ **Assign Cost Data to Elements**  
+   - Create `IfcCostSchedule` using `ifcopenshell.api.run("cost.add_cost_schedule", ...)` to organize cost items.
+   - Create or reuse an `IfcCostItem` for each matched identification code using `ifcopenshell.api.run("cost.add_cost_item", ...)`.
+   - Create `IfcCostValue` entities with unit costs from the CSV using `ifcopenshell.api.run("cost.add_cost_value", ...)`.
+   - Link elements to cost items using `ifcopenshell.api.run("control.assign_control", ...)` to create `IfcRelAssignsToControl` relationships.
 
-4️⃣ **Save Updated IFC Model**  
-   - All changes are saved to a new copy of the IFC file in the `output` folder, with `_cost` appended to the filename (e.g., `project_cost.ifc`). The original IFC file is never overwritten.
+5️⃣ **Generate Reports**  
+   - **Quantity Take-Off (QTO)**: Lists all elements with their quantities (extracted using `ifcopenshell.util.element` utilities), matched cost items, and unit costs.
+   - **Bill of Quantities (BOQ)**: Summarizes total costs by element type and cost item, organized by building storey using `ifcopenshell.util.element.get_container()`.
+   - Reports are saved as CSV files in the `output` folder.
 
-## Instructions to run the tool
+6️⃣ **Save Updated IFC Model**  
+   - All changes (new cost entities and relationships) are written to a new IFC file using `ifc_file.write()`.
+   - The output file is saved in the `output` folder with `_cost` appended to the filename (e.g., `project_cost.ifc`).
+   - The original IFC file is never modified.
 
-**Prerequisites:**
-- Python 3.8+
-- Install dependencies:  
-  `pip install -r requirements.txt`
-- Input: IFC file exported from your BIM authoring tool (Revit, ArchiCAD, etc.)
+
+# Instructions to run the tool
 
 **Usage:**
 1. Run the main script:
    ```
-   python main.py
+   python A3_TOOL.py
    ```
 2. Enter the path to your IFC model when prompted (or pass it as a command-line argument).
 3. Enter the path to your price list CSV file when prompted.
-4. The tool will process the model, assign cost data, generate reports, and save the updated IFC file in the `output` folder.
+4. The tool will process the model, assign cost data, generate reports, and save the outputs in the `output` folder.
 
-## Advanced Building Design
 
-**Design Stage:**  
-- Most useful in Stage B (Schematic Design) and early Stage C (Design Development).  
-- Designed to catch omissions and risk factors before detailed engineering and simulation.
-
-**Subjects who might use it:**  
-- Architects and design leads  
-- BIM managers and coordinators  
-- Energy and sustainability consultants (early screening)  
-- Quantity surveyors (high-level quantities)  
-- MEP and façade engineers (early clash/risk awareness)
-
-**Required information in the model:**  
-- Geometry for rooms/spaces and building envelope (walls, slabs, windows, etc.)
-- Named levels and room/space elements with area/volume
-- Element types (wall, slab, roof, window, door)
-- Basic material or property sets (U-values or material names) where available
-- Orientation and project north / site context
-- Assigned thermal zones or room-to-zone mapping (if not present, the tool will flag it)
-- Glazing definitions with area or window geometry
-- Metadata: element IDs, names, and parameter sets for traceability
-
-If key properties are missing, the tool will report them and provide recommended minimal values or workflows to populate the model.
-
-## Limitations
-
-- Not a replacement for detailed simulation tools — provides screening and QA only.
-- Accuracy depends on the quality and completeness of the input IFC/model.
-- Advanced HVAC/component simulation is out of scope.
-
-## Contact / Next steps
-
-- Use the generated checklist to correct the model, then rerun BIManalyst prior to deeper
