@@ -23,7 +23,6 @@ from helper.helper_write import (
 from helper.helper_JSON import output_to_json
 
 
-
 def structural_cost_estimation(model_path, price_csv_path, output_dir="output"):
     """
     Main pipeline for structural cost estimation.

@@ -1,7 +1,0 @@
-D:\DTU\ADVANCED BIM\25-08-D-STR.ifc
-
-D:\ISO-10303-21.ifc
-
-D:\DTU\mad_scientist_212.ifc
-
-C:\Users\ricki\Desktop\GitHub\BIManalyst_g_46\A3\input\price_list_new.csv
