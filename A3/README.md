@@ -70,6 +70,10 @@ In order to properly run the application, the .ifc model should requires this cr
 3. Enter the path to your price list CSV file when prompted.
 4. The tool will process the model, assign cost data, generate reports, and save the outputs in the `output` folder.
 
+# Process Diagram
+
+![BPMN Workflow Diagram](A3_G_46.svg)
+
 # Reference
 
 **IfcOpenShell 0.8.4 Documentation:**
@@ -81,6 +85,4 @@ In order to properly run the application, the .ifc model should requires this cr
 - [IfcCostItem](https://ifc43-docs.standards.buildingsmart.org/IFC/RELEASE/IFC4x3/HTML/lexical/IfcCostItem.htm)
 - [IfcCostValue](https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCostValue.htm)
 
-# Process Diagram
 
-![BPMN Workflow Diagram](A3_G_46.svg)
