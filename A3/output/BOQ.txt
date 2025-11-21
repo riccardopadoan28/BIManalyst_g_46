@@ -1,0 +1,39 @@
+BILL OF QUANTITIES (BOQ)
+Date: 2025-11-21
+
+Item        | Description                                 | Unit | Level | Quantity    | Unit Cost | Total Amount
+────────────┼─────────────────────────────────────────────┼──────┼───────┼─────────────┼───────────┼─────────────
+04.10.82,01 | Betonbjaelke                                | m3   | B_00  | 17,9755     | 4056,05   | 72909,34    
+04.10.82,01 | Betonbjaelke                                | m3   | F_00  | 21,0020     | 4056,05   | 85185,33    
+04.10.82,01 | Betonbjaelke                                | m3   | F_01  | 50,3844     | 4056,05   | 204361,65   
+04.10.82,01 | Betonbjaelke                                | m3   | F_02  | 7,4059      | 4056,05   | 30038,65    
+04.10.82,01 | Betonbjaelke                                | m3   | Roof  | 5,7873      | 4056,05   | 23473,55    
+            | Item Subtotal                               |      |       |             |           | 415968.51   
+04.22.33,02 | 15 mm Promatect-200 plade, HEB 200          | lbm  | B_00  | 290,4000    | 313,67    | 91089,77    
+04.22.33,02 | 15 mm Promatect-200 plade, HEB 200          | lbm  | F_00  | 351,2100    | 313,67    | 110164,04   
+04.22.33,02 | 15 mm Promatect-200 plade, HEB 200          | lbm  | F_01  | 75,3900     | 313,67    | 23647,58    
+04.22.33,02 | 15 mm Promatect-200 plade, HEB 200          | lbm  | F_02  | 11,6170     | 313,67    | 3643,90     
+            | Item Subtotal                               |      |       |             |           | 228545.29   
+04.22.33,01 | 15 mm Promatect-200 plade, HEB 160          | lbm  | B_00  | 7,2600      | 263,61    | 1913,81     
+04.22.33,01 | 15 mm Promatect-200 plade, HEB 160          | lbm  | F_00  | 73,7100     | 263,61    | 19430,69    
+04.22.33,01 | 15 mm Promatect-200 plade, HEB 160          | lbm  | F_01  | 168,7300    | 263,61    | 44478,92    
+04.22.33,01 | 15 mm Promatect-200 plade, HEB 160          | lbm  | F_02  | 177,8360    | 263,61    | 46879,35    
+            | Item Subtotal                               |      |       |             |           | 112702.76   
+04.10.80,05 | Betonsï¿½jle 200 x 200 mm, synlig overflade | m3   | F_01  | 0,9755      | 5290,99   | 5161,61     
+04.10.80,05 | Betonsï¿½jle 200 x 200 mm, synlig overflade | m3   | F_02  | 1,0711      | 5290,99   | 5667,12     
+            | Item Subtotal                               |      |       |             |           | 10828.73    
+04.50.12,01 | Pletspartling af betongulv                  | m2   | B_00  | 2398,4480   | 25,96     | 62263,71    
+04.50.12,01 | Pletspartling af betongulv                  | m2   | F_00  | 81807,6848  | 25,96     | 2123727,50  
+04.50.12,01 | Pletspartling af betongulv                  | m2   | F_01  | 55935,1839  | 25,96     | 1452077,37  
+04.50.12,01 | Pletspartling af betongulv                  | m2   | F_02  | 100645,2831 | 25,96     | 2612751,55  
+04.50.12,01 | Pletspartling af betongulv                  | m2   | Roof  | 72822,9697  | 25,96     | 1890484,29  
+            | Item Subtotal                               |      |       |             |           | 8141304.42  
+04.56.54,01 | Vægge, MBK 2122, betonelementer             | m2   | B_00  | 2807,8401   | 75,62     | 212328,87   
+04.56.54,01 | Vægge, MBK 2122, betonelementer             | m2   | F_00  | 114,2599    | 75,62     | 8640,33     
+04.56.54,01 | Vægge, MBK 2122, betonelementer             | m2   | F_01  | 411,3503    | 75,62     | 31106,31    
+04.56.54,01 | Vægge, MBK 2122, betonelementer             | m2   | F_02  | 259,2846    | 75,62     | 19607,10    
+            | Item Subtotal                               |      |       |             |           | 271682.61   
+04.56.54,04 | Vægge, MBK 2412, betonelementer             | m2   | B_00  | 424,1786    | 134,32    | 56975,67    
+            | Item Subtotal                               |      |       |             |           | 56975.67    
+
+TOTAL: 9238008.01

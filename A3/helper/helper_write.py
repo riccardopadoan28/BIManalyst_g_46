@@ -8,8 +8,6 @@ Functions:
 - _best_match: Fuzzy pick the best CSV row for an element by comparing names
 - build_cost_estimation_summary: Aggregate quantities and costs by (ident, name, unit, unit_cost)
 - write_cost_estimation_report: Write a simple text report; return (path, grand_total)
-- _get_element_type_obj: Get the IfcTypeObject related to an element
-- _extract_unit_cost_from_costitem: Extract unit cost from IfcCostItem's first CostValue
 - _fmt_table: Format data as aligned text table with headers and separator lines
 - write_qto_types_no_cost: Write QTO report grouped by IfcElementType and Level (no costs)
 - write_qto_types_no_cost_totals: Write QTO total-only report (count per type, no level split)
@@ -186,42 +184,6 @@ def write_cost_estimation_report(
             )
 
     return out_path, grand_total
-
-# Get the IfcTypeObject related to an element.
-# Prefers IsTypedBy relationship, falls back to IsDefinedBy.
-def _get_element_type_obj(e):
-    if getattr(e, "IsTypedBy", None):
-        for rel in e.IsTypedBy:
-            if rel and rel.is_a("IfcRelDefinesByType") and rel.RelatingType:
-                return rel.RelatingType
-    for rel in getattr(e, "IsDefinedBy", []) or []:
-        if rel and rel.is_a("IfcRelDefinesByType") and rel.RelatingType:
-            return rel.RelatingType
-    return None
-
-# Extract unit cost from IfcCostItem's first CostValue.
-# Handles various ifcopenshell wrapped value formats.
-def _extract_unit_cost_from_costitem(ci):
-    vals = getattr(ci, "CostValues", None) or []
-    if not vals:
-        return None
-    v = getattr(vals[0], "AppliedValue", None)
-    # ifcopenshell often allows float(v); handle wrapped measures
-    try:
-        return float(v)
-    except Exception:
-        try:
-            w = getattr(v, "wrappedValue", None)
-            return float(w) if w is not None else None
-        except Exception:
-            try:
-                # Fallback: parse like IFCMONETARYMEASURE(1188.9)
-                s = str(v)
-                if "(" in s and ")" in s:
-                    return float(s.split("(")[1].split(")")[0])
-            except Exception:
-                return None
-    return None
 
 # Format data as aligned text table with headers and separator lines.
 # Creates human-readable table with automatic column width calculation.

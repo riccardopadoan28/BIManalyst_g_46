@@ -70,5 +70,3 @@ In order to properly run the application, the .ifc model should requires this cr
 2. Enter the path to your IFC model when prompted (or pass it as a command-line argument).
 3. Enter the path to your price list CSV file when prompted.
 4. The tool will process the model, assign cost data, generate reports, and save the outputs in the `output` folder.
-
-

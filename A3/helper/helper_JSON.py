@@ -110,7 +110,6 @@ def output_to_json(model, csv_path=None, output_dir="output"):
         "items": items,
         "summary": {
             "total": round(grand_total, 2),
-            "currency": "DKK"
         }
     }
 

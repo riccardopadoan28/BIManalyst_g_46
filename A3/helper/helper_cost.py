@@ -8,7 +8,6 @@ Cost helpers:
 Functions:
 - ensure_cost_schedule: Find or create an IfcCostSchedule by name, ensuring only one exists
 - _schedule_children_cost_items: Collect direct child IfcCostItem nested under schedule
-- _find_item_by_name_or_identification: Find item by Name or Identification among schedule children
 - add_or_get_cost_item: Find an IfcCostItem by name/identification or create one under the schedule
 - add_unit_cost_value: Create an IfcCostValue as a child of a cost item with AppliedValue
 - _best_match: Fuzzy match element name to the best CSV row on the given column
@@ -43,15 +42,6 @@ def _schedule_children_cost_items(schedule) -> List[object]:
             if o.is_a("IfcCostItem"):
                 children.append(o)
     return children
-
-# Find item by Name or Identification among schedule children to avoid duplicate cost items.
-def _find_item_by_name_or_identification(schedule, name: str, identification: str | None):
-    for item in _schedule_children_cost_items(schedule):
-        if (getattr(item, "Name", None) or "") == name:
-            return item
-        if identification and (getattr(item, "Identification", None) or "") == identification:
-            return item
-    return None
 
 # Create an IfcCostValue as a child of a cost item, set AppliedValue and store label in Name.
 def add_or_get_cost_item(model, cost_schedule, name, identification=None, description=None):
