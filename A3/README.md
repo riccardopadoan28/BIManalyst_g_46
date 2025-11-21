@@ -56,7 +56,7 @@ In order to properly run the application, the .ifc model should requires this cr
 
 6️⃣ **Save Updated IFC Model**  
    - All changes (new cost entities and relationships) are written to a new IFC file using `ifc_file.write()`.
-   - The output file is saved in the `output` folder with `_cost` appended to the filename (e.g., `project_cost.ifc`).
+   - The output files are saved in the `output` folder.
    - The original IFC file is never modified.
 
 # Instructions to run the tool
