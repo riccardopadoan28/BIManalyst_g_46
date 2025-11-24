@@ -18,8 +18,8 @@ This tool can be useful after the structural early design stage is completed and
 
 **Requirements for model and database:**
 In order to properly run the application, the .ifc model should requires this criteria:
-1. For all the structural elements the IfcQuantitySet have to be populated: QuantityLenght, QuantityArea, QuantityVolume
-   For example, for a beam:
+1. For all the structural elements the IfcQuantitySet have to be populated: QuantityLenght, QuantityArea, QuantityVolume. For example, for a single beam:
+
      ```bash
       <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
          <ids:ids xmlns:ids="http://standards.buildingsmart.org/IDS" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://standards.buildingsmart.org/IDS http://standards.buildingsmart.org/IDS/1.0/ids.xsd">
@@ -51,8 +51,8 @@ In order to properly run the application, the .ifc model should requires this cr
             </ids:specifications>
          </ids:ids>
   ```
-2. Strong correlation between the name of the type in the .ifc model and the name in the price list.
-   For example:
+2. Strong correlation between the name of the type in the .ifc model and the name in the price list. For example:
+
     ```bash
       IfcEntity Name: Rektangulær bjælke (RB)_N:RB200/500:340303
       Price list name: 180 x 360 mm rektangulær betonbjælke
