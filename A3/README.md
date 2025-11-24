@@ -1,7 +1,7 @@
 # Group BIManalyst_g_46: A3 Tool
 
 ## About the tool
-Group BIManalys_g_46 has developed a tool that perform a structural cost estimation, working on a given model starting from a given structural price list. 
+Group BIManalys_g_46 has developed a tool that performs a structural cost estimation, working on a given model starting from a given structural price list. 
 The tool:
 - Reads .ifc elements and their properties;
 - Matches elements to cost items from a CSV price list matching and assign `IfcCostSchedule`;
@@ -12,7 +12,7 @@ The tool:
 
 # Advanced Building Design
 
-This tool can be useful after the structural early design stage is completed and as well to assess cost estimation analysis during the design process. It needs a structural ifc model to perform the calculation and it should be useful to PMs, BIM managers, BIM coordinators, quantity surveyors, cost controllers and to performe due diligence on the project. 
+This tool can be useful after the structural early design stage is completed and as well to assess cost estimation analysis during the design process. It needs a structural .ifc model to perform the calculation and it should be useful to PMs, BIM managers, BIM coordinators, quantity surveyors, cost controllers and to performe due diligence on the project. 
 
 **Requirements for model and database:**
 In order to properly run the application, the .ifc model should requires this criteria:
@@ -39,7 +39,7 @@ In order to properly run the application, the .ifc model should requires this cr
 3️⃣ **Match Elements to Cost Items**  
    - For each IfcElement in the model:
      - Look up matching .csv rows by element class through IfcMatch column.
-     - Use fuzzy string matching on the element's Name to find the best price list match (using Python's `difflib.SequenceMatcher`)
+     - Use fuzzy string matching on the element's Name to find the best price list match using Python's `difflib.SequenceMatcher`.
      - Extract element properties using `ifcopenshell.util.element.get_psets()` to access property sets.
      - Extract quantities using `ifcopenshell.util.element.get_quantity()` for length, area, or volume.
 
@@ -62,13 +62,13 @@ In order to properly run the application, the .ifc model should requires this cr
 # Instructions to run the tool
 
 **Usage:**
-1. Run the main script:
+1. Run the application:
    ```
    python A3_TOOL.py
    ```
-2. Enter the path to your IFC model when prompted (or pass it as a command-line argument).
-3. Enter the path to your price list CSV file when prompted.
-4. The tool will process the model, assign cost data, generate reports, and save the outputs in the `output` folder.
+2. Enter the path to your IFC model.
+3. Enter the path to your price list CSV file.
+4. The tool will process the model, assign cost data, generate reports, and save the documents in the `output` folder.
 
 # Process Diagram
 
