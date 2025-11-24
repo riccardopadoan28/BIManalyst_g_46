@@ -14,11 +14,50 @@ The tool:
 
 This tool can be useful after the structural early design stage is completed and as well to assess cost estimation analysis during the design process. It needs a structural .ifc model to perform the calculation and it should be useful to PMs, BIM managers, BIM coordinators, quantity surveyors, cost controllers and to performe due diligence on the project. 
 
+# IDS
+
 **Requirements for model and database:**
 In order to properly run the application, the .ifc model should requires this criteria:
-- All Elements QuantitySet have to be populated: QuantityLenght, QuantityArea, QuantityVolume;
-- Strong correlation between the name of the type in the .ifc model and the name in the price list;
-- The cost defined in the price list (Unit Cost) has to be the unitary cost.
+1. For all the structural elements the IfcQuantitySet have to be populated: QuantityLenght, QuantityArea, QuantityVolume
+   For example, for a beam:
+     ```bash
+      <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+         <ids:ids xmlns:ids="http://standards.buildingsmart.org/IDS" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://standards.buildingsmart.org/IDS http://standards.buildingsmart.org/IDS/1.0/ids.xsd">
+            <ids:info>
+               <ids:title>A3_TOOL.py IDS</ids:title>
+               <ids:description>IFC structural model validation</ids:description>
+               <ids:date>2025-11-24</ids:date>
+            </ids:info>
+            <ids:specifications>
+               <ids:specification ifcVersion="IFC4X3_ADD2" name="Rule_1_IfcBeam">
+                     <ids:applicability minOccurs="1" maxOccurs="unbounded">
+                        <ids:entity>
+                           <ids:name>
+                                 <ids:simpleValue>IfcBeam</ids:simpleValue>
+                           </ids:name>
+                        </ids:entity>
+                     </ids:applicability>
+                     <ids:requirements>
+                        <ids:property>
+                           <ids:propertySet>
+                                 <ids:simpleValue>Qto_BeamBaseQuantities</ids:simpleValue>
+                           </ids:propertySet>
+                           <ids:baseName>
+                                 <ids:simpleValue>QuantityVolume</ids:simpleValue>
+                           </ids:baseName>
+                        </ids:property>
+                     </ids:requirements>
+               </ids:specification>
+            </ids:specifications>
+         </ids:ids>
+  ```
+2. Strong correlation between the name of the type in the .ifc model and the name in the price list.
+   For example:
+    ```bash
+      IfcEntity Name: Rektangulær bjælke (RB)_N:RB200/500:340303
+      Price list name: 180 x 360 mm rektangulær betonbjælke
+  ``` 
+3. The cost estimation performs a material cost estimation, so cost defined in the price list has to be the unitary cost (IfcCostValue=UnitaryCost).
 
 # Workflow of the Application
 
@@ -32,8 +71,8 @@ In order to properly run the application, the .ifc model should requires this cr
    - Elements with empty class names are skipped.
 
   ```bash
-      Identification Code | Name         | IfcMatch | IfcCostValue    | Unit |
-      04.10.82,01         | Betonbjaelke | IfcBeam  | 4056,05         | m3   |
+      Identification Code | Name                                        | IfcMatch | IfcCostValue    | Unit |
+      04.10.82,01         | Betonbjælke 200 x 300 mm, ikke synlig flade | IfcBeam  | 4056,05         | m3   |
   ```
 
 3️⃣ **Match Elements to Cost Items**  
