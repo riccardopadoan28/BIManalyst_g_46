@@ -57,7 +57,8 @@ In order to properly run the application, the .ifc model should requires this cr
       IfcEntity Name: Rektangulær bjælke (RB)_N:RB200/500:340303
       Price list name: 180 x 360 mm rektangulær betonbjælke
    ``` 
-3. The cost estimation performs a material cost estimation, so cost defined in the price list has to be the unitary cost (IfcCostValue=UnitaryCost).
+3. The cost estimation performs a material cost estimation, so costs defined in the price list have to be the material unitary cost.
+4. The csv price list columns are fixed: Identification Code; Name; IfcMatch; IfcCostValue; Unit.
 
 # Workflow of the Application
 
@@ -85,18 +86,17 @@ In order to properly run the application, the .ifc model should requires this cr
 4️⃣ **Assign Cost Data to Elements**  
    - Create `IfcCostSchedule` using `ifcopenshell.api.run("cost.add_cost_schedule", ...)` to organize cost items.
    - Create or reuse an `IfcCostItem` for each matched identification code using `ifcopenshell.api.run("cost.add_cost_item", ...)`.
-   - Create `IfcCostValue` entities with unit costs from the CSV using `ifcopenshell.api.run("cost.add_cost_value", ...)`.
+   - Create `IfcCostValue` entities with unit costs from the .csv using `ifcopenshell.api.run("cost.add_cost_value", ...)`.
    - Link elements to cost items using `ifcopenshell.api.run("control.assign_control", ...)` to create `IfcRelAssignsToControl` relationships.
 
 5️⃣ **Generate Reports**  
    - **Quantity Take-Off (QTO)**: Lists all elements with their quantities (extracted using `ifcopenshell.util.element` utilities), matched cost items, and unit costs.
    - **Bill of Quantities (BOQ)**: Summarizes total costs by element type and cost item, organized by building storey using `ifcopenshell.util.element.get_container()`.
-   - Reports are saved as CSV files in the `output` folder.
+   - Reports are saved as .txt files in the `output` folder.
 
 6️⃣ **Save Updated IFC Model**  
-   - All changes (new cost entities and relationships) are written to a new IFC file using `ifc_file.write()`.
-   - The output files are saved in the `output` folder.
-   - The original IFC file is never modified.
+   - All changes (new cost entities and relationships) are written to a new .ifc file using `ifc_file.write()`.
+   - The output files are saved in the `output` folder and the original .ifc file is never modified.
 
 # Instructions to run the tool
 
@@ -119,8 +119,8 @@ In order to properly run the application, the .ifc model should requires this cr
    ```
    python A3_TOOL.py
    ```
-2. Enter the path to your IFC model.
-3. Enter the path to your price list CSV file.
+2. Enter the path to your .ifc model.
+3. Enter the path to your price list .csv file.
 4. The tool will process the model, assign cost data, generate reports, and save the documents in the `output` folder.
 
 # Process Diagram
@@ -131,7 +131,7 @@ In order to properly run the application, the .ifc model should requires this cr
 # Future perspective
 
 1. Implement the logic of matching also for kg, stk.
-2. Assign also the price of equipment rents and labours.
+2. Assign to the IfcCostItem also the costs of equipment rents and labours.
 
 # Reference
 
