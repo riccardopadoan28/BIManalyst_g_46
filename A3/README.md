@@ -77,9 +77,8 @@ In order to properly run the application, the .ifc model should requires this cr
 
 # Future perspective
 
-1.
-2.
-3.
+1. Implement the logic of matching also for kg, stk.
+2. Assign also the price of equipment rents and labours.
 
 # Reference
 
