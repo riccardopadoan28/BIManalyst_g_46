@@ -74,6 +74,13 @@ In order to properly run the application, the .ifc model should requires this cr
 
 ![BPMN Workflow Diagram](A3_G_46.svg)
 
+
+# Future perspective
+
+1.
+2.
+3.
+
 # Reference
 
 **IfcOpenShell 0.8.4 Documentation:**
