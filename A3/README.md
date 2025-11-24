@@ -61,6 +61,20 @@ In order to properly run the application, the .ifc model should requires this cr
 
 # Instructions to run the tool
 
+**Setup:**
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/riccardopadoan28/BIManalyst_g_46.git
+   ```
+2. Navigate to the A3 folder:
+   ```bash
+   cd BIManalyst_g_46/A3
+   ```
+3. Install required dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+   
 **Usage:**
 1. Run the application:
    ```
