@@ -127,7 +127,80 @@ In order to properly run the application, the .ifc model should requires this cr
 
 ![BPMN Workflow Diagram](A3_G_46.svg)
 
+# Example of the results
 
+## Quantity Take-Off (QTO) – Totals Only
+
+```text
+Quantity Take Off (QTO)
+Date: 2025-11-28
+Total Elements: 1008
+
+#  | IfcTypeClass      | Type Name                                       | Level                                            | Count
+───┼───────────────────┼─────────────────────────────────────────────────┼──────────────────────────────────────────────────┼──────
+1  | IfcBeamType       | HEB Bjælke_N:HE260B                             | F_00                                             | 8    
+2  | IfcBeamType       | HEB Bjælke_N:HE260B                             | F_01                                             | 48   
+3  | IfcBeamType       | HEB Bjælke_N:HE260B                             | F_02                                             | 31   
+... (output truncated for brevity) ...
+TOTAL COUNT = 1008
+
+```text
+   QUANTITY TAKE OFF (QTO) – TOTALS ONLY
+   Date: 2025-11-28
+   Total Elements: 1008
+
+   #  | IfcTypeClass      | Type Name                                       | Count
+   ───┼───────────────────┼─────────────────────────────────────────────────┼──────
+   1  | IfcBeamType       | HEB Bjælke_N:HE260B                             | 133  
+   2  | IfcBeamType       | HEB Bjælke_N:HE300B                             | 14   
+   3  | IfcBeamType       | HEB Bjælke_N:HE360B                             | 8    
+   ... (output truncated for brevity) ...
+   TOTAL COUNT = 1008
+```
+
+```text
+   BILL OF QUANTITIES (BOQ) – TOTALS ONLY
+   Date: 2025-11-28
+
+   Item         | Description                                 | Unit | Quantity    | Unit Cost | Total Amount
+   ─────────────┼─────────────────────────────────────────────┼──────┼─────────────┼───────────┼─────────────
+   04.10.83,01  | 120 x 300 mm rektangulær betonbjælke        | lbm  | 524.4040    | 1929.82   | 1012005.29  
+   04.10.82,01  | Betonbjælke 200 x 300 mm, ikke synlig flade | m3   | 12.6570     | 4056.05   | 51337.28    
+   ... (output truncated for brevity) ...
+   TOTAL: 202685407.60
+```
+
+```text
+BILL OF QUANTITIES (BOQ)
+Date: 2025-11-28
+
+Item         | Description                                 | Unit | Level | Quantity    | Unit Cost | Total Amount
+─────────────┼─────────────────────────────────────────────┼──────┼───────┼─────────────┼───────────┼─────────────
+04.10.83,01  | 120 x 300 mm rektangulær betonbjælke        | lbm  | B_00  | 169,6600    | 1929,82   | 327413,26   
+04.10.83,01  | 120 x 300 mm rektangulær betonbjælke        | lbm  | F_00  | 138,4700    | 1929,82   | 267222,18   
+... (output truncated for brevity) ...
+TOTAL: 202685407.60
+```
+
+```text
+{
+  "document": {
+    "title": "BILL OF QUANTITIES (BOQ) – TOTALS ONLY",
+    "date": "2025-11-28",
+    "source": "IFC Model Analysis"
+  },
+  "items": [
+    {
+      "itemCode": "04.10.83,01",
+      "description": "120 x 300 mm rektangulær betonbjælke",
+      "unit": "lbm",
+      "quantity": 524.404,
+      "unitCost": 1929.82,
+      "totalAmount": 1012005.29
+    },
+    ... (output truncated for brevity) ...
+
+```
 # Future perspective
 
 1. Implement the logic of matching also for kg, stk.

@@ -6,9 +6,7 @@ This tool estimates costs and enriches the IFC model with IfcCostSchedule, IfcCo
 
 # Youtube Video
 
-[Watch the Youtube video](https://youtu.be/ab2ckDVf8uE)
-
-![Youtube Tutorial](https://youtu.be/ab2ckDVf8uE)
+[Watch the Youtube tutorial video](https://youtu.be/ab2ckDVf8uE)
 
 # Process Diagram
 
