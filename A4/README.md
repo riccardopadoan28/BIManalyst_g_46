@@ -6,11 +6,13 @@ This tool estimates costs and enriches the IFC model with IfcCostSchedule, IfcCo
 
 # Youtube Video
 
-[Youtube Link]()
+[Watch the Youtube video](https://youtu.be/ab2ckDVf8uE)
+
+![Youtube Tutorial](https://youtu.be/ab2ckDVf8uE)
 
 # Process Diagram
 
-[BPMN Workflow Diagram](A3_G_46.svg)
+![BPMN Workflow Diagram](A3_G_46.svg)
 
 # Workflow of the Application
 
