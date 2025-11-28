@@ -129,7 +129,7 @@ In order to properly run the application, the .ifc model should requires this cr
 
 # Example of the results
 
-## Quantity Take-Off (QTO) – Totals Only
+## Quantity Take Off (QTO)
 
 ```text
 Quantity Take Off (QTO)
@@ -143,6 +143,7 @@ Total Elements: 1008
 3  | IfcBeamType       | HEB Bjælke_N:HE260B                             | F_02                                             | 31   
 ... (output truncated for brevity) ...
 TOTAL COUNT = 1008
+```
 
 ```text
    QUANTITY TAKE OFF (QTO) – TOTALS ONLY
@@ -158,6 +159,7 @@ TOTAL COUNT = 1008
    TOTAL COUNT = 1008
 ```
 
+## Bill Of Quantities (BOQ)
 ```text
    BILL OF QUANTITIES (BOQ) – TOTALS ONLY
    Date: 2025-11-28
@@ -181,7 +183,7 @@ Item         | Description                                 | Unit | Level | Quan
 ... (output truncated for brevity) ...
 TOTAL: 202685407.60
 ```
-
+## JSON FILE
 ```text
 {
   "document": {
@@ -199,8 +201,8 @@ TOTAL: 202685407.60
       "totalAmount": 1012005.29
     },
     ... (output truncated for brevity) ...
-
 ```
+
 # Future perspective
 
 1. Implement the logic of matching also for kg, stk.
