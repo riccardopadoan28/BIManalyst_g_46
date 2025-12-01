@@ -96,7 +96,7 @@ Lots of potential for data use further along the pipeline of AEC -->
 
 ## Are you likely to use OpenBIM tools in your thesis?
 - Riccardo: I am using OpenBIM principles and IfcOpenShell documentation
-- Borja: Currently, I'm working on a company which is not commited to used any open tools.
+- Borja: Currently, I am working on a company which is not commited to use any open tools
 - Ali:
 
 ## Are you likely to use OpenBIM tools in your professsional life in the next 10 years?
@@ -106,6 +106,6 @@ Lots of potential for data use further along the pipeline of AEC -->
 
 # (Individual) Wrap up
 ## Conclude the journey through A1-A5
-- Riccardo: Considering that my initial programming skills were basic, during the journey I faced lot of difficulties. The difference between the firsts and lasts assignments is huge, so I would have preferred to have more theoretical lectures and programming tutorials in the beginning of the course. At the end of the journey I can consider myself proud and happy of how I have improved my programming skills and my OpenBIM knowledge.
-- Borja: Coming from 0 coding skills, the content on the course webside was really helpfull. For the firsts assigments the content was sufficient but felt short for developing the tool. This meant that my other peer (Riccardo)had to take a leading rol, to assemble the tool together with our support. I finnish this course having a good understanding of coding and enough knowledge to contune the way as a self learner and to be able to implement the skills in the workplace or other projects.
+- Riccardo: Considering that my initial programming skills were basic, during the journey I faced lot of difficulties. The difference between the firsts and lasts assignments is huge, so I would have preferred to have more theoretical lectures, programming tutorials and explanations on how to use Git in the beginning of the course. At the end of the journey I can consider myself proud and happy of how I have improved my programming skills and my OpenBIM knowledge
+- Borja: Coming from 0 coding skills, the content on the course webside was really helpfull. For the firsts assigments the content was sufficient but felt short for developing the tool. This meant that my other peer (Riccardo)had to take a leading rol, to assemble the tool together with our support. I finnish this course having a good understanding of coding and enough knowledge to contune the way as a self learner and to be able to implement the skills in the workplace or other projects
 - Ali:
