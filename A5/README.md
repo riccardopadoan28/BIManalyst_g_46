@@ -1,26 +1,24 @@
 # Your learning experience for the concept you focused on
 
 ## Identify your own level at the beginning of this course and where you ended
-
 - Riccardo: BIM Manager -> OpenBIM Champion
 - Borja: Modeler -> Self Learner
 - Ali: Modeler -> Self Learner
 
 ## What else do you still need to learn?
-
 - Riccardo: More programming skills
 - Borja: Continue diving into python programming
 - Ali:
 
 ## How you might use OpenBIM in the future?
-- Riccardo: As a PM, but it dependes on the industry and the companies.
-- Borja: As a PM
-- Ali:
+- Riccardo: As a PM/consultant or software developer, but it is strictly linked to the industry and the company I will work with.
+- Borja: I would be likely to use it as a PM/consultant
+- Ali: 
 
 # Your process of developing the tutorial
 
 ## Did the process of the course enable you to answer or define questions that you might need later for thesis?
-- Riccardo: Sure, the topic I have chosen it's part of my MSc Thesis
+- Riccardo: Sure, the topic I have chosen it's a little part of my MSc Thesis
 - Borja: My focus is about construction processes. The course content will be useful in order to analyze projects before the contruction
 - Ali:
 
@@ -31,7 +29,7 @@
 
 ## Was the number of tools for the course ok - should we have more or less? - if so which ones would you leave out?
 - Riccardo: I think we used the necessary tools
-- Borja: I think the tool and content are correct
+- Borja: I think tools and contents are correct
 - Ali:
 
  # (As a group) summary of the feedback you received on your tutorial did the tool address the use case you identified?
