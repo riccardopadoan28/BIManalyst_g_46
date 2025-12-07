@@ -8,7 +8,7 @@
 ## What else do you still need to learn?
 - Riccardo: More programming skills
 - Borja: Continue diving into python programming
-- Ali:
+- Ali: Continue diving into python programming
 
 ## How you might use OpenBIM in the future?
 - Riccardo: As a PM/consultant or software developer, but it is strictly linked to the industry and the company I will work with.
@@ -41,50 +41,6 @@ This tool can be useful after the structural early design stage is completed and
 
 ## Feedback 
 
-<!-- Group 42:
-
-Based on the name so one may have to match/check all elemts could be a lot of work. I do like it dosent have to be exact, but one would stil have to check trog to the data to be reliable.  
-
-Some good txt outputs to show all the data and output, very nice that this could be a final hand in.  
-
-Very detailed with lots of information, great potential for use for final cost of STR, or even work futher on it . 
-
-Future is make a txt output with dimensions and type for ordering elemets.  
-
-Great tool very detailed and seemes work trough  
-
- 
-Group 48: 
-
-CSV price list file set-up: for future it might be nice to make it more universal, so the file doesn’t have to have a specific structure. 
-
-Nicely structured instructions on the github. 
-
-The dynamic quantity to price function (including the name matching) is a really cool feature. 
-
-I like that there a checkpoints in the terminal, so you can see what the code is during while running. 
-
-The amount of output files might be a bit overwhelming for new users, but this should be fine with good documentation (and since the target group is other engineering students).  
-
-The tool shows promise as a price documentation tool for the final stages of design. 
-
-Huge potential in the concrete manufacturing business. It would be super convenient with some tweaks for salespeople when calculating prices for a project. 
-
- 
-Group 49: 
-
-Nice file structure with clear distinction between folders and categories.  
-
-Good fallback and addressing the different units that could potentially leads to errors.  
-
-Easy and simple code context for data extraction tool 
-
-Nice overview for the quantity takeoff in data visualization.  
-
-Lots of potential for data use further along the pipeline of AEC -->
-
-## Feedback Summary
-
 | Group    | Feedback Points |
 |----------|-----------------|
 | **Group 42** | • Name-based matching requires manual verification to ensure reliability<br>• Excellent text outputs showing all data and results – suitable for final deliverables<br>• Very detailed with lots of information; great potential for final structural cost estimation<br>• Future improvement: generate text output with dimensions and type for ordering elements<br>• Great tool, very detailed and appears to work well |
@@ -95,17 +51,17 @@ Lots of potential for data use further along the pipeline of AEC -->
 # (Individual) Your future for Advanced use of OpenBIM
 
 ## Are you likely to use OpenBIM tools in your thesis?
-- Riccardo: I am using OpenBIM principles and IfcOpenShell documentation
+- Riccardo: I am currently using OpenBIM concept and IfcOpenShell documentation
 - Borja: Currently, I am working on a company which is not commited to use any open tools
-- Ali:
+- Ali: I am not very likely to use OpenBIM tools in my thesis, mainly because I have not yet reached the thesis stage and my research focus is still uncertain. Now, I expect to rely more on other types of software, although I remain interested in the concepts behind OpenBIM
 
 ## Are you likely to use OpenBIM tools in your professsional life in the next 10 years?
 - Riccardo: I would be more than happy to use OpenBIM tools in the next years, and I hope the industry will commit more to this
 - Borja: I would be likely to use it for individual projects or other companies
-- Ali:
+- Ali: I am not sure how likely it is that I will use OpenBIM tools in my professional life over the next 10 years. It will depend on the direction of my career and the software environment used in the companies or projects I work with.
 
 # (Individual) Wrap up
 ## Conclude the journey through A1-A5
 - Riccardo: Considering that my initial programming skills were basic, during the journey I faced lot of difficulties. The difference between the firsts and lasts assignments is huge, so I would have preferred to have more theoretical lectures, programming tutorials and explanations on how to use Git in the beginning of the course. At the end of the journey I can consider myself proud and happy of how I have improved my programming skills and my OpenBIM knowledge
 - Borja: Coming from 0 coding skills, the content on the course webside was really helpfull. For the firsts assigments the content was sufficient but felt short for developing the tool. This meant that my other peer (Riccardo)had to take a leading rol, to assemble the tool together with our support. I finnish this course having a good understanding of coding and enough knowledge to contune the way as a self learner and to be able to implement the skills in the workplace or other projects
-- Ali:
+- Ali: During the A1–A5 journey, I started with only very basic programming skills and almost no experience with OpenBIM. The course resources helped me get started, but in assignments, Riccardo naturally took the lead while I focused on specific tasks and learning the workflow. By the end of the course, I feel I have built a solid basic understanding of coding, Git and OpenBIM, and I am confident enough to continue improving these skills and use them in future projects.
